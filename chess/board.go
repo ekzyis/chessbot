@@ -217,7 +217,85 @@ func (b *Board) movePawn(position string) error {
 }
 
 func (b *Board) moveRook(position string) error {
-	return nil
+	var (
+		x     int
+		y     int
+		xPrev int
+		yPrev int
+		piece *Piece
+		err   error
+	)
+
+	if x, y, err = getXY(position); err != nil {
+		return err
+	}
+
+	xPrev = x
+	yPrev = y
+	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
+		xPrev++
+		piece = b.getPiece(xPrev, yPrev)
+		if piece != nil {
+			if piece.Name == Rook && piece.Color == b.turn {
+				b.tiles[xPrev][yPrev] = nil
+				b.tiles[x][y] = piece
+				return nil
+			} else {
+				// direction blocked by other piece
+				break
+			}
+		}
+	}
+
+	xPrev = x
+	yPrev = y
+	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
+		yPrev--
+		piece = b.getPiece(xPrev, yPrev)
+		if piece != nil {
+			if piece.Name == Rook && piece.Color == b.turn {
+				b.tiles[xPrev][yPrev] = nil
+				b.tiles[x][y] = piece
+				return nil
+			} else {
+				break
+			}
+		}
+	}
+
+	xPrev = x
+	yPrev = y
+	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
+		xPrev--
+		piece = b.getPiece(xPrev, yPrev)
+		if piece != nil {
+			if piece.Name == Rook && piece.Color == b.turn {
+				b.tiles[xPrev][yPrev] = nil
+				b.tiles[x][y] = piece
+				return nil
+			} else {
+				break
+			}
+		}
+	}
+
+	xPrev = x
+	yPrev = y
+	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
+		yPrev++
+		piece = b.getPiece(xPrev, yPrev)
+		if piece != nil {
+			if piece.Name == Rook && piece.Color == b.turn {
+				b.tiles[xPrev][yPrev] = nil
+				b.tiles[x][y] = piece
+				return nil
+			} else {
+				break
+			}
+		}
+	}
+
+	return fmt.Errorf("no rook found that can move to %s", position)
 }
 
 func (b *Board) moveBishop(position string) error {

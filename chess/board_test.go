@@ -130,6 +130,27 @@ func TestBoardMoveBishop(t *testing.T) {
 	assertNoPiece(t, b, "f8")
 }
 
+func TestBoardMoveRook(t *testing.T) {
+	b := chess.NewBoard()
+
+	b.Move("Ra3")
+
+	assertMoveError(t, b, "Ra3", "no rook found that can move to a3")
+
+	b.Move("a4")
+	b.Move("a5")
+
+	b.Move("Ra3")
+
+	assertPiece(t, b, "a3", chess.Rook, chess.Light)
+	assertNoPiece(t, b, "a1")
+
+	b.Move("Ra6")
+
+	assertPiece(t, b, "a6", chess.Rook, chess.Dark)
+	assertNoPiece(t, b, "a8")
+}
+
 func assertPiece(t *testing.T, b *chess.Board, position string, name chess.PieceName, color chess.Color) {
 	p := b.At(position)
 
