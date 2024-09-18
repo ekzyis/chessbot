@@ -134,6 +134,15 @@ func (b *Board) Move(position string) error {
 		err error
 	)
 
+	// TODO: parse captures e.g. exd5 or Nxd5
+	// TODO: parse promotions
+	// TODO: parse checks e.g. e5+
+	// TODO: parse checkmates e.g. e5#
+	// TODO: parse O-O as kingside castle and O-O-O as queenside castle
+	// TODO: make sure pinned pieces cannot move
+	// TODO: make sure king is not in check after move
+	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
+
 	if len(position) == 2 {
 		err = b.movePawn(position)
 	} else if len(position) == 3 {
@@ -180,6 +189,11 @@ func (b *Board) movePawn(position string) error {
 	}
 
 	// TODO: implement diagonal pawn attacks
+	// TODO: assert move is valid:
+	//   * 2 moves from start position
+	//   * 1 move otherwise
+	//   * diagonal if attacking
+	//   * no collision with other pieces
 
 	if b.turn == Light {
 		yPrev = y + 1
@@ -206,12 +220,6 @@ func (b *Board) movePawn(position string) error {
 		b.tiles[x][y] = piece
 		return nil
 	}
-
-	// TODO: assert move is valid:
-	// * 2 moves from start position
-	// * 1 move otherwise
-	// * diagonal if attacking
-	// * no collision with other pieces
 
 	return fmt.Errorf("no pawn found that can move to %s", position)
 }
@@ -490,6 +498,7 @@ func (b *Board) moveQueen(position string) error {
 }
 
 func (b *Board) moveKing(position string) error {
+	// TODO: implement king moves
 	return nil
 }
 
