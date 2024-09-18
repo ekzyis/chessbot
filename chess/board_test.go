@@ -6,7 +6,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/ekzyis/sn-chess/chess"
+	"github.com/ekzyis/chessbot/chess"
 	"github.com/stretchr/testify/assert"
 )
 

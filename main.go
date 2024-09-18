@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ekzyis/sn-chess/chess"
+	"github.com/ekzyis/chessbot/chess"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/ekzyis/sn-chess
+module github.com/ekzyis/chessbot
 
 go 1.23.0
 
