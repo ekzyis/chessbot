@@ -71,6 +71,30 @@ func TestBoardMovePawn(t *testing.T) {
 	assertPiece(t, b, "e5", chess.Pawn, chess.Dark)
 }
 
+func TestBoardMovePawnInvalid(t *testing.T) {
+	b := chess.NewBoard()
+
+	assertMoveError(t, b, "a5", "no pawn found that can move to a5")
+	assertMoveError(t, b, "b5", "no pawn found that can move to b5")
+	assertMoveError(t, b, "c5", "no pawn found that can move to c5")
+	assertMoveError(t, b, "d5", "no pawn found that can move to d5")
+	assertMoveError(t, b, "e5", "no pawn found that can move to e5")
+	assertMoveError(t, b, "f5", "no pawn found that can move to f5")
+	assertMoveError(t, b, "g5", "no pawn found that can move to g5")
+	assertMoveError(t, b, "h5", "no pawn found that can move to h5")
+
+	b.Move("d4")
+
+	assertMoveError(t, b, "a4", "no pawn found that can move to a4")
+	assertMoveError(t, b, "b4", "no pawn found that can move to b4")
+	assertMoveError(t, b, "c4", "no pawn found that can move to c4")
+	assertMoveError(t, b, "d4", "no pawn found that can move to d4")
+	assertMoveError(t, b, "e4", "no pawn found that can move to e4")
+	assertMoveError(t, b, "f4", "no pawn found that can move to f4")
+	assertMoveError(t, b, "g4", "no pawn found that can move to g4")
+	assertMoveError(t, b, "h4", "no pawn found that can move to h4")
+}
+
 func assertPiece(t *testing.T, b *chess.Board, position string, name chess.PieceName, color chess.Color) {
 	p := b.At(position)
 
@@ -91,4 +115,8 @@ func assertNoPiece(t *testing.T, b *chess.Board, position string) {
 	p := b.At(position)
 
 	assert.Nil(t, p, "expected no piece at %s", position)
+}
+
+func assertMoveError(t *testing.T, b *chess.Board, position string, message string) {
+	assert.ErrorContains(t, b.Move(position), message)
 }
