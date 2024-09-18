@@ -81,9 +81,10 @@ func assertPiece(t *testing.T, b *chess.Board, position string, name chess.Piece
 
 	msg := fmt.Sprintf("expected %s %s at %s", c, name, position)
 
-	assert.NotNil(t, p, msg)
-	assert.Equal(t, name, p.Name, msg)
-	assert.Equal(t, color, p.Color, msg)
+	if assert.NotNil(t, p, msg) {
+		assert.Equal(t, name, p.Name, msg)
+		assert.Equal(t, color, p.Color, msg)
+	}
 }
 
 func assertNoPiece(t *testing.T, b *chess.Board, position string) {
