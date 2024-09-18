@@ -211,6 +211,7 @@ func (b *Board) movePawn(position string) error {
 	// * 2 moves from start position
 	// * 1 move otherwise
 	// * diagonal if attacking
+	// * no collision with other pieces
 
 	return fmt.Errorf("no pawn found that can move to %s", position)
 }
