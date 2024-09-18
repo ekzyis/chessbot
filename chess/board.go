@@ -164,6 +164,7 @@ func (b *Board) movePawn(position string) error {
 	var (
 		x     int
 		y     int
+		y_    int
 		piece *Piece
 		err   error
 	)
@@ -174,18 +175,33 @@ func (b *Board) movePawn(position string) error {
 
 	// TODO: implement diagonal pawn attacks
 
-	for yi := 0; yi < 8; yi++ {
-		piece = b.tiles[x][yi]
-		if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
-			// TODO: assert move is valid:
-			// * 2 moves from start position
-			// * 1 move otherwise
-			// * diagonal if attacking
-			b.tiles[x][y] = piece
-			b.tiles[x][yi] = nil
-			return nil
-		}
+	if b.turn == Light {
+		y_ = y + 1
+	} else {
+		y_ = y - 1
 	}
+
+	piece = b.tiles[x][y_]
+	if piece == nil {
+		if b.turn == Light {
+			y_ = y + 2
+		} else {
+			y_ = y - 2
+		}
+		piece = b.tiles[x][y_]
+	}
+
+	if piece == nil {
+		return fmt.Errorf("no pawn found that can move to %s", position)
+	}
+
+	b.tiles[x][y_] = nil
+	b.tiles[x][y] = piece
+
+	// TODO: assert move is valid:
+	// * 2 moves from start position
+	// * 1 move otherwise
+	// * diagonal if attacking
 
 	return nil
 }
