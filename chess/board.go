@@ -7,14 +7,16 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"strings"
 )
 
 type Board struct {
 	tiles [8][8]*Piece
+	turn  Color
 }
 
 func NewBoard() *Board {
-	board := &Board{}
+	board := &Board{turn: Light}
 
 	board.mustSetPiece(Rook, Light, "a1")
 	board.mustSetPiece(Knight, Light, "b1")
@@ -112,10 +114,98 @@ func (b *Board) SetPiece(name PieceName, color Color, position string) error {
 	return nil
 }
 
+func (b *Board) Parse(pgn string) error {
+	var (
+		moves = strings.Split(pgn, " ")
+		err   error
+	)
+
+	for _, move := range moves {
+		if err = b.Move(move); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (b *Board) Move(position string) error {
+	var (
+		name PieceName
+		err  error
+	)
+
+	// TODO: implement remaining moveset of pieces
+	if len(position) == 2 {
+		name = Pawn
+	}
+
+	switch name {
+	case Pawn:
+		err = b.movePawn(position)
+	default:
+		err = fmt.Errorf("invalid move: %s", position)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if b.turn == Light {
+		b.turn = Dark
+	} else {
+		b.turn = Light
+	}
+
+	return nil
+}
+
+func (b *Board) movePawn(position string) error {
+	var (
+		x     int
+		y     int
+		piece *Piece
+		err   error
+	)
+
+	if x, y, err = getXY(position); err != nil {
+		return err
+	}
+
+	// TODO: implement diagonal pawn attacks
+
+	for yi := 0; yi < 8; yi++ {
+		piece = b.tiles[x][yi]
+		if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
+			// TODO: assert move is valid:
+			// * 2 moves from start position
+			// * 1 move otherwise
+			// * diagonal if attacking
+			b.tiles[x][y] = piece
+			b.tiles[x][yi] = nil
+			return nil
+		}
+	}
+
+	return nil
+}
+
 func (b *Board) mustSetPiece(name PieceName, color Color, position string) {
 	if err := b.SetPiece(name, color, position); err != nil {
 		log.Fatalf("cannot set piece %s: %v", name, err)
 	}
+}
+
+func (b *Board) At(position string) *Piece {
+	var (
+		x   int
+		y   int
+		err error
+	)
+	if x, y, err = getXY(position); err != nil {
+		return nil
+	}
+	return b.tiles[x][y]
 }
 
 func getXY(position string) (int, int, error) {
