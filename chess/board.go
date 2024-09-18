@@ -131,20 +131,26 @@ func (b *Board) Parse(pgn string) error {
 
 func (b *Board) Move(position string) error {
 	var (
-		name PieceName
-		err  error
+		err error
 	)
 
-	// TODO: implement remaining moveset of pieces
 	if len(position) == 2 {
-		name = Pawn
-	}
-
-	switch name {
-	case Pawn:
 		err = b.movePawn(position)
-	default:
-		err = fmt.Errorf("invalid move: %s", position)
+	} else if len(position) == 3 {
+		switch strings.ToLower(position[0:1]) {
+		case "r":
+			err = b.moveRook(position[1:3])
+		case "b":
+			err = b.moveBishop(position[1:3])
+		case "n":
+			err = b.moveKnight(position[1:3])
+		case "q":
+			err = b.moveQueen(position[1:3])
+		case "k":
+			err = b.moveKing(position[1:3])
+		default:
+			err = fmt.Errorf("invalid move: %s", position)
+		}
 	}
 
 	if err != nil {
@@ -207,6 +213,111 @@ func (b *Board) movePawn(position string) error {
 	// * diagonal if attacking
 
 	return fmt.Errorf("no pawn found that can move to %s", position)
+}
+
+func (b *Board) moveRook(position string) error {
+	return nil
+}
+
+func (b *Board) moveBishop(position string) error {
+	return nil
+}
+
+func (b *Board) moveKnight(position string) error {
+	var (
+		x     int
+		y     int
+		xPrev int
+		yPrev int
+		piece *Piece
+		err   error
+	)
+
+	if x, y, err = getXY(position); err != nil {
+		return err
+	}
+
+	xPrev = x + 1
+	yPrev = y - 2
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x + 2
+	yPrev = y - 1
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x + 2
+	yPrev = y + 1
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x + 1
+	yPrev = y + 2
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x - 1
+	yPrev = y + 2
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x - 2
+	yPrev = y + 1
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x - 2
+	yPrev = y - 1
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	xPrev = x - 1
+	yPrev = y - 2
+	piece = b.tiles[xPrev][yPrev]
+	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	return fmt.Errorf("no knight found that can move to %s", position)
+}
+
+func (b *Board) moveQueen(position string) error {
+	return nil
+}
+
+func (b *Board) moveKing(position string) error {
+	return nil
 }
 
 func (b *Board) mustSetPiece(name PieceName, color Color, position string) {
