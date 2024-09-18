@@ -132,7 +132,34 @@ func (b *Board) Parse(pgn string) error {
 func (b *Board) Move(position string) error {
 	var (
 		err error
+		// the column from which the piece is captured.
+		// for example, this would be 'e' for exd4 and 'e' for Nexd4.
+		captureFrom string
 	)
+
+	if strings.Contains(position, "x") {
+		// capture move
+		parts := strings.Split(position, "x")
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid move: %s", position)
+		}
+		if len(parts[0]) == 2 {
+			// example: Nexd4
+			captureFrom = parts[0][1:]
+		} else if len(parts[0]) == 1 {
+			if strings.ToLower(parts[0]) == parts[0] {
+				// example: exd4
+				captureFrom = parts[0]
+			} else {
+				// example: Nxd4
+				captureFrom = ""
+			}
+		} else {
+			return fmt.Errorf("invalid move: %s", position)
+		}
+
+		position = strings.Replace(position, captureFrom+"x", "", 1)
+	}
 
 	// TODO: parse captures e.g. exd5 or Nxd5
 	// TODO: parse promotions
@@ -144,7 +171,7 @@ func (b *Board) Move(position string) error {
 	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
 
 	if len(position) == 2 {
-		err = b.movePawn(position)
+		err = b.movePawn(position, captureFrom)
 	} else if len(position) == 3 {
 		switch strings.ToLower(position[0:1]) {
 		case "r":
@@ -175,10 +202,12 @@ func (b *Board) Move(position string) error {
 	return nil
 }
 
-func (b *Board) movePawn(position string) error {
+func (b *Board) movePawn(position string, captureFrom string) error {
 	var (
 		x     int
 		y     int
+		cX    int
+		cY    int
 		yPrev int
 		piece *Piece
 		err   error
@@ -188,7 +217,33 @@ func (b *Board) movePawn(position string) error {
 		return err
 	}
 
-	// TODO: implement diagonal pawn attacks
+	if captureFrom != "" {
+		if cX, cY, err = getXY(captureFrom + position[0:1]); err != nil {
+			return err
+		}
+
+		if b.turn == Light {
+			cY = y + 1
+		} else {
+			cY = y - 1
+		}
+
+		piece = b.getPiece(cX, cY)
+		if piece == nil || piece.Name != Pawn || piece.Color != b.turn {
+			// not your pawn
+			return fmt.Errorf("invalid capture move for pawn: %s", position)
+		}
+
+		if cX != x-1 && cX != x+1 || (b.turn == Light && cY != y+1) || (b.turn == Dark && cY != y-1) {
+			// invalid capture move
+			return fmt.Errorf("invalid capture move for pawn: %s", position)
+		}
+
+		b.tiles[cX][cY] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
 	// TODO: assert move is valid:
 	//   * 2 moves from start position
 	//   * 1 move otherwise

@@ -95,6 +95,17 @@ func TestBoardMovePawnInvalid(t *testing.T) {
 	assertMoveError(t, b, "h4", "no pawn found that can move to h4")
 }
 
+func TestBoardMovePawnCapture(t *testing.T) {
+	b := chess.NewBoard()
+
+	b.Move("e4")
+	b.Move("d5")
+	b.Move("exd5")
+
+	assertNoPiece(t, b, "e4")
+	assertPiece(t, b, "d5", chess.Pawn, chess.Light)
+}
+
 func TestBoardMoveKnight(t *testing.T) {
 	b := chess.NewBoard()
 
