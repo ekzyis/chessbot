@@ -239,7 +239,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x + 1
 	yPrev = y - 2
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -248,7 +248,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x + 2
 	yPrev = y - 1
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -257,7 +257,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x + 2
 	yPrev = y + 1
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -266,7 +266,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x + 1
 	yPrev = y + 2
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -275,7 +275,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x - 1
 	yPrev = y + 2
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -284,7 +284,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x - 2
 	yPrev = y + 1
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -293,7 +293,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x - 2
 	yPrev = y - 1
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -302,7 +302,7 @@ func (b *Board) moveKnight(position string) error {
 
 	xPrev = x - 1
 	yPrev = y - 2
-	piece = b.tiles[xPrev][yPrev]
+	piece = b.getPiece(xPrev, yPrev)
 	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
@@ -362,6 +362,13 @@ func getXY(position string) (int, int, error) {
 	y = int('8' - posY)
 
 	return x, y, nil
+}
+
+func (b *Board) getPiece(x int, y int) *Piece {
+	if x < 0 || x >= 8 || y < 0 || y >= 8 {
+		return nil
+	}
+	return b.tiles[x][y]
 }
 
 func getTileColor(x, y int) Color {

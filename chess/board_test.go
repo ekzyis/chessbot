@@ -103,9 +103,9 @@ func TestBoardMoveKnight(t *testing.T) {
 	assertPiece(t, b, "f3", chess.Knight, chess.Light)
 	assertNoPiece(t, b, "g1")
 
-	b.Move("Nf6")
+	b.Move("Nh6")
 
-	assertPiece(t, b, "f6", chess.Knight, chess.Dark)
+	assertPiece(t, b, "h6", chess.Knight, chess.Dark)
 	assertNoPiece(t, b, "g8")
 }
 
