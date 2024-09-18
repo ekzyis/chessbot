@@ -151,6 +151,27 @@ func TestBoardMoveRook(t *testing.T) {
 	assertNoPiece(t, b, "a8")
 }
 
+func TestBoardMoveQueen(t *testing.T) {
+	b := chess.NewBoard()
+
+	b.Move("Qd3")
+
+	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
+
+	b.Move("d4")
+	b.Move("d5")
+
+	b.Move("Qd3")
+
+	assertPiece(t, b, "d3", chess.Queen, chess.Light)
+	assertNoPiece(t, b, "d1")
+
+	b.Move("Qd6")
+
+	assertPiece(t, b, "d6", chess.Queen, chess.Dark)
+	assertNoPiece(t, b, "d8")
+}
+
 func assertPiece(t *testing.T, b *chess.Board, position string, name chess.PieceName, color chess.Color) {
 	p := b.At(position)
 

@@ -139,9 +139,9 @@ func (b *Board) Move(position string) error {
 	} else if len(position) == 3 {
 		switch strings.ToLower(position[0:1]) {
 		case "r":
-			err = b.moveRook(position[1:3])
+			err = b.moveRook(position[1:3], false)
 		case "b":
-			err = b.moveBishop(position[1:3])
+			err = b.moveBishop(position[1:3], false)
 		case "n":
 			err = b.moveKnight(position[1:3])
 		case "q":
@@ -216,7 +216,7 @@ func (b *Board) movePawn(position string) error {
 	return fmt.Errorf("no pawn found that can move to %s", position)
 }
 
-func (b *Board) moveRook(position string) error {
+func (b *Board) moveRook(position string, queen bool) error {
 	var (
 		x     int
 		y     int
@@ -236,7 +236,7 @@ func (b *Board) moveRook(position string) error {
 		xPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Rook && piece.Color == b.turn {
+			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -253,7 +253,7 @@ func (b *Board) moveRook(position string) error {
 		yPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Rook && piece.Color == b.turn {
+			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -269,7 +269,7 @@ func (b *Board) moveRook(position string) error {
 		xPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Rook && piece.Color == b.turn {
+			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -285,7 +285,7 @@ func (b *Board) moveRook(position string) error {
 		yPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Rook && piece.Color == b.turn {
+			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -298,7 +298,7 @@ func (b *Board) moveRook(position string) error {
 	return fmt.Errorf("no rook found that can move to %s", position)
 }
 
-func (b *Board) moveBishop(position string) error {
+func (b *Board) moveBishop(position string, queen bool) error {
 	var (
 		x     int
 		y     int
@@ -319,7 +319,7 @@ func (b *Board) moveBishop(position string) error {
 		yPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Bishop && piece.Color == b.turn {
+			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -337,7 +337,7 @@ func (b *Board) moveBishop(position string) error {
 		yPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Bishop && piece.Color == b.turn {
+			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -354,7 +354,7 @@ func (b *Board) moveBishop(position string) error {
 		yPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Bishop && piece.Color == b.turn {
+			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -371,7 +371,7 @@ func (b *Board) moveBishop(position string) error {
 		yPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if piece.Name == Bishop && piece.Color == b.turn {
+			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -474,7 +474,19 @@ func (b *Board) moveKnight(position string) error {
 }
 
 func (b *Board) moveQueen(position string) error {
-	return nil
+	var (
+		err error
+	)
+
+	if err = b.moveBishop(position, true); err == nil {
+		return nil
+	}
+
+	if err = b.moveRook(position, true); err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("no queen found that can move to %s", position)
 }
 
 func (b *Board) moveKing(position string) error {
