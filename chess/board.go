@@ -13,6 +13,7 @@ import (
 type Board struct {
 	tiles [8][8]*Piece
 	turn  Color
+	moves []string
 }
 
 func NewBoard() *Board {
@@ -131,6 +132,18 @@ func (b *Board) SetPiece(name PieceName, color Color, position string) error {
 	return nil
 }
 
+func (b *Board) AlgebraicNotation() string {
+	var text string
+	for i, m := range b.moves {
+		if i%2 == 0 {
+			text += fmt.Sprintf("%d. %s", i/2+1, m)
+		} else {
+			text += fmt.Sprintf(" %s ", m)
+		}
+	}
+	return text
+}
+
 func (b *Board) Parse(pgn string) error {
 	var (
 		moves = strings.Split(pgn, " ")
@@ -205,7 +218,7 @@ func (b *Board) Move(position string) error {
 			err = fmt.Errorf("invalid move: %s", position)
 		}
 	} else {
-		err = fmt.Errorf("invalid move: %s", position)
+		return fmt.Errorf("invalid move: %s", position)
 	}
 
 	if err != nil {
@@ -217,6 +230,8 @@ func (b *Board) Move(position string) error {
 	} else {
 		b.turn = Light
 	}
+
+	b.moves = append(b.moves, position)
 
 	return nil
 }

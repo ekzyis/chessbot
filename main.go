@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -70,9 +71,9 @@ func tickGameStart(c *sn.Client) {
 			continue
 		}
 
+		text := fmt.Sprintf("`%s`\n\n%s", b.AlgebraicNotation(), imgUrl)
 		var cId int
-		parentId := n.Item.Id
-		if cId, err = c.CreateComment(parentId, imgUrl); err != nil {
+		if cId, err = c.CreateComment(n.Item.Id, text); err != nil {
 			log.Printf("error creating reply: %v\n", err)
 			continue
 		}
@@ -158,8 +159,9 @@ func tickGameProgress(c *sn.Client) {
 			continue
 		}
 
+		text := fmt.Sprintf("`%s`\n\n%s", b.AlgebraicNotation(), imgUrl)
 		var cId int
-		if cId, err = c.CreateComment(n.Item.Id, imgUrl); err != nil {
+		if cId, err = c.CreateComment(n.Item.Id, text); err != nil {
 			log.Printf("error creating reply: %v\n", err)
 			continue
 		}
