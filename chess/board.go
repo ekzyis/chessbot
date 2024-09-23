@@ -19,6 +19,8 @@ type Board struct {
 func NewBoard() *Board {
 	board := &Board{turn: Light}
 
+	// TODO: include a-h, 1-8
+
 	board.mustSetPiece(Rook, Light, "a1")
 	board.mustSetPiece(Knight, Light, "b1")
 	board.mustSetPiece(Bishop, Light, "c1")
