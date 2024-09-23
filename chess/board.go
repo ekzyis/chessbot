@@ -55,21 +55,38 @@ func NewBoard() *Board {
 	return board
 }
 
+func NewGame(move string) (*Board, error) {
+	board := NewBoard()
+
+	if err := board.Move(move); err != nil {
+		return nil, err
+	}
+
+	return board, nil
+}
+
 func (b *Board) Save(filename string) error {
 	var (
-		file  *os.File
-		img   *image.RGBA
-		piece *Piece
-		bg    *image.Uniform
-		rect  image.Rectangle
-		p     = image.Point{0, 0}
-		err   error
+		file *os.File
+		err  error
 	)
 
 	if file, err = os.Create(filename); err != nil {
 		return err
 	}
 	defer file.Close()
+
+	return png.Encode(file, b.Image())
+}
+
+func (b *Board) Image() *image.RGBA {
+	var (
+		img   *image.RGBA
+		piece *Piece
+		bg    *image.Uniform
+		rect  image.Rectangle
+		p     = image.Point{0, 0}
+	)
 
 	img = image.NewRGBA(image.Rect(0, 0, 1024, 1024))
 
@@ -86,7 +103,7 @@ func (b *Board) Save(filename string) error {
 		}
 	}
 
-	return png.Encode(file, img)
+	return img
 }
 
 func (b *Board) SetPiece(name PieceName, color Color, position string) error {
@@ -187,6 +204,8 @@ func (b *Board) Move(position string) error {
 		default:
 			err = fmt.Errorf("invalid move: %s", position)
 		}
+	} else {
+		err = fmt.Errorf("invalid move: %s", position)
 	}
 
 	if err != nil {

@@ -1,2 +1,4 @@
 *.png
 !assets/*.png
+.env
+*.sqlite3
