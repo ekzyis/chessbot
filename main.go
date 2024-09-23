@@ -22,7 +22,7 @@ func main() {
 	for {
 		tickGameStart(c)
 		tickGameProgress(c)
-		time.Sleep(30 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 
