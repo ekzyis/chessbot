@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	sn "github.com/ekzyis/snappy"
@@ -63,4 +64,31 @@ func InsertItem(item *sn.Item) error {
 	}
 
 	return nil
+}
+
+func GetThread(id int) ([]sn.Item, error) {
+	var (
+		items []sn.Item
+		err   error
+	)
+
+	var item sn.Item
+	item.ParentId = id
+
+	for item.ParentId > 0 {
+		// TODO: can't select created_at because sqlite3 doesn't support timestamps natively
+		// see https://github.com/mattn/go-sqlite3/issues/142
+		if err = db.QueryRow(
+			`SELECT id, user_id, text, COALESCE(parent_id, 0) FROM items WHERE id = ?`, item.ParentId).
+			Scan(&item.Id, &item.User.Id, &item.Text, &item.ParentId); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errors.New("item not found in db")
+			}
+			return nil, err
+		}
+
+		items = append([]sn.Item{item}, items...)
+	}
+
+	return items, nil
 }
