@@ -71,7 +71,7 @@ func tickGameStart(c *sn.Client) {
 			continue
 		}
 
-		text := fmt.Sprintf("`%s`\n\n%s", b.AlgebraicNotation(), imgUrl)
+		text := strings.Trim(fmt.Sprintf("%s\n\n%s", b.AlgebraicNotation(), imgUrl), " ")
 		var cId int
 		if cId, err = c.CreateComment(n.Item.Id, text); err != nil {
 			log.Printf("error creating reply: %v\n", err)
@@ -130,8 +130,9 @@ func tickGameProgress(c *sn.Client) {
 			if item.User.Id == meId {
 				continue
 			}
-			move := strings.Trim(strings.ReplaceAll(item.Text, "@chess", ""), " ")
-			if err = b.Move(move); err != nil {
+
+			moves := strings.Trim(strings.ReplaceAll(item.Text, "@chess", ""), " ")
+			if err = b.Parse(moves); err != nil {
 				log.Printf("error moving piece: %v: id=%d\n", err, item.Id)
 				break
 			}
@@ -142,7 +143,7 @@ func tickGameProgress(c *sn.Client) {
 			continue
 		}
 
-		if err = b.Move(move); err != nil {
+		if err = b.Parse(move); err != nil {
 			log.Printf("error moving piece: %v: id=%d\n", err, n.Item.ParentId)
 			continue
 		}

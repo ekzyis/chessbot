@@ -56,10 +56,10 @@ func NewBoard() *Board {
 	return board
 }
 
-func NewGame(move string) (*Board, error) {
+func NewGame(moves string) (*Board, error) {
 	board := NewBoard()
 
-	if err := board.Move(move); err != nil {
+	if err := board.Parse(moves); err != nil {
 		return nil, err
 	}
 
@@ -149,16 +149,20 @@ func (b *Board) AlgebraicNotation() string {
 			text += fmt.Sprintf(" %s ", m)
 		}
 	}
-	return text
+	return fmt.Sprintf("`%s`", text)
 }
 
 func (b *Board) Parse(pgn string) error {
 	var (
-		moves = strings.Split(pgn, " ")
+		moves = strings.Split(strings.Trim(pgn, " "), " ")
 		err   error
 	)
 
 	for _, move := range moves {
+		move = strings.Trim(move, " ")
+		if move == "" {
+			continue
+		}
 		if err = b.Move(move); err != nil {
 			return err
 		}
