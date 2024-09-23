@@ -99,9 +99,17 @@ func (b *Board) Image() *image.RGBA {
 
 			piece = b.tiles[xi][yi]
 			if piece != nil {
-				draw.Draw(img, rect, piece.Image, p, draw.Over)
+				pieceImg := piece.Image
+				if b.turn == Dark {
+					pieceImg = flipImage(pieceImg)
+				}
+				draw.Draw(img, rect, pieceImg, p, draw.Over)
 			}
 		}
+	}
+
+	if b.turn == Dark {
+		return flipImage(img)
 	}
 
 	return img
@@ -648,4 +656,18 @@ func getTileColor(x, y int) Color {
 	} else {
 		return Dark
 	}
+}
+
+func flipImage(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	flipped := image.NewRGBA(bounds)
+
+	// Flip the image vertically by reversing the Y coordinate
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			flipped.Set(x, bounds.Max.Y-y-1, img.At(x, y))
+		}
+	}
+
+	return flipped
 }
