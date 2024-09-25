@@ -348,43 +348,43 @@ func (b *Board) Move(position string) error {
 
 func (b *Board) movePawn(position string, captureFrom string) error {
 	var (
-		x     int
-		y     int
-		cX    int
-		cY    int
+		toX   int
+		toY   int
+		fromX int
+		fromY int
 		yPrev int
 		piece *Piece
 		err   error
 	)
 
-	if x, y, err = getXY(position); err != nil {
+	if toX, toY, err = getXY(position); err != nil {
 		return err
 	}
 
 	if captureFrom != "" {
-		if cX, cY, err = getXY(captureFrom + position[0:1]); err != nil {
+		if fromX, fromY, err = getXY(captureFrom + position[1:2]); err != nil {
 			return err
 		}
 
 		if b.turn == Light {
-			cY = y + 1
+			fromY = toY + 1
 		} else {
-			cY = y - 1
+			fromY = toY - 1
 		}
 
-		piece = b.getPiece(cX, cY)
+		piece = b.getPiece(fromX, fromY)
 		if piece == nil || piece.Name != Pawn || piece.Color != b.turn {
 			// not your pawn
 			return fmt.Errorf("invalid capture move for pawn: %s", position)
 		}
 
-		if cX != x-1 && cX != x+1 || (b.turn == Light && cY != y+1) || (b.turn == Dark && cY != y-1) {
+		if fromX != toX-1 && fromX != toX+1 || (b.turn == Light && fromY != toY+1) || (b.turn == Dark && fromY != toY-1) {
 			// invalid capture move
 			return fmt.Errorf("invalid capture move for pawn: %s", position)
 		}
 
-		b.tiles[cX][cY] = nil
-		b.tiles[x][y] = piece
+		b.tiles[fromX][fromY] = nil
+		b.tiles[toX][toY] = piece
 		return nil
 	}
 
@@ -395,28 +395,28 @@ func (b *Board) movePawn(position string, captureFrom string) error {
 	//   * no collision with other pieces
 
 	if b.turn == Light {
-		yPrev = y + 1
+		yPrev = toY + 1
 	} else {
-		yPrev = y - 1
+		yPrev = toY - 1
 	}
 
-	piece = b.tiles[x][yPrev]
+	piece = b.tiles[toX][yPrev]
 	if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
-		b.tiles[x][yPrev] = nil
-		b.tiles[x][y] = piece
+		b.tiles[toX][yPrev] = nil
+		b.tiles[toX][toY] = piece
 		return nil
 	}
 
 	if b.turn == Light {
-		yPrev = y + 2
+		yPrev = toY + 2
 	} else {
-		yPrev = y - 2
+		yPrev = toY - 2
 	}
 
-	piece = b.tiles[x][yPrev]
+	piece = b.tiles[toX][yPrev]
 	if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
-		b.tiles[x][yPrev] = nil
-		b.tiles[x][y] = piece
+		b.tiles[toX][yPrev] = nil
+		b.tiles[toX][toY] = piece
 		return nil
 	}
 
