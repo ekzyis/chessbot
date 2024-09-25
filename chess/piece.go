@@ -16,6 +16,34 @@ type Piece struct {
 	Image image.Image
 }
 
+func (p *Piece) String() string {
+	n := ""
+	switch p.Name {
+	case Pawn:
+		n = "pawn"
+	case Knight:
+		n = "knight"
+	case Bishop:
+		n = "bishop"
+	case Rook:
+		n = "rook"
+	case Queen:
+		n = "queen"
+	case King:
+		n = "king"
+	}
+
+	c := ""
+	switch p.Color {
+	case Light:
+		c = "white"
+	case Dark:
+		c = "black"
+	}
+
+	return fmt.Sprintf("%s %s", c, n)
+}
+
 type PieceName string
 
 const (

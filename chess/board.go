@@ -269,19 +269,22 @@ func (b *Board) Parse(pgn string) error {
 	return nil
 }
 
-func (b *Board) Move(position string) error {
+func (b *Board) Move(move string) error {
 	var (
-		err error
+		piece          string
+		targetPosition string
 		// the column from which the piece is captured.
 		// for example, this would be 'e' for exd4 and 'e' for Nexd4.
-		captureFrom string
+		captureFrom    string
+		collisionPiece *Piece
+		err            error
 	)
 
-	if strings.Contains(position, "x") {
+	if strings.Contains(move, "x") {
 		// capture move
-		parts := strings.Split(position, "x")
+		parts := strings.Split(move, "x")
 		if len(parts) != 2 {
-			return fmt.Errorf("invalid move: %s", position)
+			return fmt.Errorf("invalid move: %s", move)
 		}
 		if len(parts[0]) == 2 {
 			// example: Nexd4
@@ -295,10 +298,10 @@ func (b *Board) Move(position string) error {
 				captureFrom = ""
 			}
 		} else {
-			return fmt.Errorf("invalid move: %s", position)
+			return fmt.Errorf("invalid move: %s", move)
 		}
 
-		position = strings.Replace(position, captureFrom+"x", "", 1)
+		move = strings.Replace(move, captureFrom+"x", "", 1)
 	}
 
 	// TODO: parse captures e.g. exd5 or Nxd5
@@ -310,25 +313,36 @@ func (b *Board) Move(position string) error {
 	// TODO: make sure king is not in check after move
 	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
 
-	if len(position) == 2 {
-		err = b.movePawn(position, captureFrom)
-	} else if len(position) == 3 {
-		switch strings.ToLower(position[0:1]) {
+	if len(move) == 2 {
+		err = b.movePawn(move, captureFrom)
+	} else if len(move) == 3 {
+
+		piece = move[0:1]
+		targetPosition = move[1:3]
+
+		// collision detection
+		if collisionPiece, err = b.getCollision(targetPosition); err != nil {
+			return fmt.Errorf("invalid move %s: %v", move, err)
+		} else if collisionPiece != nil {
+			return fmt.Errorf("invalid move %s: position %s blocked by %s", move, targetPosition, collisionPiece)
+		}
+
+		switch strings.ToLower(piece) {
 		case "r":
-			err = b.moveRook(position[1:3], false)
+			err = b.moveRook(targetPosition, false)
 		case "b":
-			err = b.moveBishop(position[1:3], false)
+			err = b.moveBishop(targetPosition, false)
 		case "n":
-			err = b.moveKnight(position[1:3])
+			err = b.moveKnight(targetPosition)
 		case "q":
-			err = b.moveQueen(position[1:3])
+			err = b.moveQueen(targetPosition)
 		case "k":
-			err = b.moveKing(position[1:3])
+			err = b.moveKing(targetPosition)
 		default:
-			err = fmt.Errorf("invalid move: %s", position)
+			err = fmt.Errorf("invalid move %s: %v", move, err)
 		}
 	} else {
-		return fmt.Errorf("invalid move: %s", position)
+		return fmt.Errorf("invalid move %s: %v", move, err)
 	}
 
 	if err != nil {
@@ -341,7 +355,7 @@ func (b *Board) Move(position string) error {
 		b.turn = Light
 	}
 
-	b.moves = append(b.moves, position)
+	b.moves = append(b.moves, move)
 
 	return nil
 }
@@ -750,6 +764,30 @@ func (b *Board) getPiece(x int, y int) *Piece {
 		return nil
 	}
 	return b.tiles[x][y]
+}
+
+func (b *Board) getCollision(position string) (*Piece, error) {
+	var (
+		x, y      int
+		p         *Piece
+		collision bool
+		err       error
+	)
+	if x, y, err = getXY(position); err != nil {
+		return nil, err
+	}
+
+	p = b.getPiece(x, y)
+
+	// check if position is occupied by own piece
+	collision = p != nil && p.Color == b.turn
+	if collision {
+		return p, nil
+	}
+
+	// TODO: check if path is blocked by some piece
+
+	return nil, nil
 }
 
 func getTileColor(x, y int) Color {
