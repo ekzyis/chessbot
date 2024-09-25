@@ -312,39 +312,42 @@ func (b *Board) Move(move string) error {
 	// TODO: make sure king is not in check after move
 	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
 
-	if len(move) == 2 {
-		err = b.movePawn(move, captureFrom)
-	} else if len(move) == 3 {
-
-		piece = move[0:1]
-		targetPosition = move[1:3]
-
-		// collision detection
-		if collisionPiece, err = b.getCollision(targetPosition); err != nil {
-			return fmt.Errorf("invalid move %s: %v", move, err)
-		} else if collisionPiece != nil {
-			return fmt.Errorf("invalid move %s: position %s blocked by %s", move, targetPosition, collisionPiece)
+	move_ := func() error {
+		if len(move) == 2 {
+			return b.movePawn(move, captureFrom)
 		}
 
-		switch strings.ToLower(piece) {
-		case "r":
-			err = b.moveRook(targetPosition, false)
-		case "b":
-			err = b.moveBishop(targetPosition, false)
-		case "n":
-			err = b.moveKnight(targetPosition)
-		case "q":
-			err = b.moveQueen(targetPosition)
-		case "k":
-			err = b.moveKing(targetPosition)
-		default:
-			err = fmt.Errorf("invalid move %s: %v", move, err)
+		if len(move) == 3 {
+			piece = move[0:1]
+			targetPosition = move[1:3]
+
+			// collision detection
+			if collisionPiece, err = b.getCollision(targetPosition); err != nil {
+				return fmt.Errorf("invalid move %s: %v", move, err)
+			} else if collisionPiece != nil {
+				return fmt.Errorf("invalid move %s: position %s blocked by %s", move, targetPosition, collisionPiece)
+			}
+
+			switch strings.ToLower(piece) {
+			case "r":
+				return b.moveRook(targetPosition, false)
+			case "b":
+				return b.moveBishop(targetPosition, false)
+			case "n":
+				return b.moveKnight(targetPosition)
+			case "q":
+				return b.moveQueen(targetPosition)
+			case "k":
+				return b.moveKing(targetPosition)
+			default:
+				return fmt.Errorf("invalid move %s: %v", move, err)
+			}
 		}
-	} else {
+
 		return fmt.Errorf("invalid move %s: %v", move, err)
 	}
 
-	if err != nil {
+	if err = move_(); err != nil {
 		return err
 	}
 
