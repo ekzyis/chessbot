@@ -265,6 +265,29 @@ func TestBoardMoveQueenInvalid(t *testing.T) {
 	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
 }
 
+func TestBoardMoveKing(t *testing.T) {
+	b := chess.NewBoard()
+
+	b.Parse("e4 e5 Ke2 Ke7 Kf3 Kd6 Kg3 Kc6")
+	assertNoPiece(t, b, "e1")
+	assertNoPiece(t, b, "e8")
+	assertNoPiece(t, b, "e2")
+	assertNoPiece(t, b, "e7")
+	assertNoPiece(t, b, "f3")
+	assertNoPiece(t, b, "d6")
+
+	assertPiece(t, b, "g3", chess.King, chess.Light)
+	assertPiece(t, b, "c6", chess.King, chess.Dark)
+}
+
+func TestBoardMoveKingInvalid(t *testing.T) {
+	b := chess.NewBoard()
+
+	assertMoveError(t, b, "Ke1", "e1 blocked by white king")
+	assertMoveError(t, b, "Ke2", "e2 blocked by white pawn")
+	assertMoveError(t, b, "Ke3", "no king found that can move to e3")
+}
+
 func assertPiece(t *testing.T, b *chess.Board, position string, name chess.PieceName, color chess.Color) {
 	p := b.At(position)
 

@@ -711,8 +711,100 @@ func (b *Board) moveQueen(position string) error {
 }
 
 func (b *Board) moveKing(position string) error {
-	// TODO: implement king moves
-	return nil
+	var (
+		x     int
+		y     int
+		xPrev int
+		yPrev int
+		piece *Piece
+		err   error
+	)
+
+	if x, y, err = getXY(position); err != nil {
+		return err
+	}
+
+	// ^
+	xPrev = x + 0
+	yPrev = y - 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// ^>
+	xPrev = x + 1
+	yPrev = y - 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// >
+	xPrev = x + 1
+	yPrev = y + 0
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// v>
+	xPrev = x + 1
+	yPrev = y + 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// v
+	xPrev = x + 0
+	yPrev = y + 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// <v
+	xPrev = x - 1
+	yPrev = y + 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// <
+	xPrev = x - 1
+	yPrev = y + 0
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	// <^
+	xPrev = x - 1
+	yPrev = y - 1
+	piece = b.getPiece(xPrev, yPrev)
+	if piece != nil && piece.Name == King && piece.Color == b.turn {
+		b.tiles[xPrev][yPrev] = nil
+		b.tiles[x][y] = piece
+		return nil
+	}
+
+	return fmt.Errorf("no king found that can move to %s", position)
 }
 
 func (b *Board) mustSetPiece(name PieceName, color Color, position string) {
