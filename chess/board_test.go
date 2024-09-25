@@ -110,14 +110,36 @@ func TestBoardMoveKnight(t *testing.T) {
 	b := chess.NewBoard()
 
 	b.Move("Nf3")
-
 	assertPiece(t, b, "f3", chess.Knight, chess.Light)
 	assertNoPiece(t, b, "g1")
 
 	b.Move("Nh6")
-
 	assertPiece(t, b, "h6", chess.Knight, chess.Dark)
 	assertNoPiece(t, b, "g8")
+
+	b.Move("Nc3")
+	assertPiece(t, b, "c3", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "b1")
+
+	b.Move("Na6")
+	assertPiece(t, b, "a6", chess.Knight, chess.Dark)
+	assertNoPiece(t, b, "b8")
+
+	b.Move("Nh4")
+	assertPiece(t, b, "h4", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "f3")
+
+	b.Move("Nf5")
+	assertPiece(t, b, "f5", chess.Knight, chess.Dark)
+	assertNoPiece(t, b, "h6")
+
+	b.Move("Na4")
+	assertPiece(t, b, "a4", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "c3")
+
+	b.Move("Nc5")
+	assertPiece(t, b, "c5", chess.Knight, chess.Dark)
+	assertNoPiece(t, b, "a6")
 }
 
 func TestBoardMoveKnightInvalid(t *testing.T) {
@@ -128,6 +150,7 @@ func TestBoardMoveKnightInvalid(t *testing.T) {
 	assertMoveError(t, b, "Nb3", "no knight found that can move to b3")
 
 	// blocked by own piece
+	assertMoveError(t, b, "Ng1", "g1 blocked by white knight")
 	assertMoveError(t, b, "Nd2", "d2 blocked by white pawn")
 	assertMoveError(t, b, "Ne2", "e2 blocked by white pawn")
 
@@ -138,6 +161,18 @@ func TestBoardMoveKnightInvalid(t *testing.T) {
 
 	assertMoveError(t, b, "Ne7", "e7 blocked by black pawn")
 	assertMoveError(t, b, "Nd7", "d7 blocked by black pawn")
+}
+
+func TestBoardMoveKnightCapture(t *testing.T) {
+	b := chess.NewBoard()
+
+	b.Parse("e4 Nf6 d4 Nxe4")
+
+	assertPiece(t, b, "e4", chess.Knight, chess.Dark)
+	assertPiece(t, b, "d4", chess.Pawn, chess.Light)
+	assertNoPiece(t, b, "g8")
+	assertNoPiece(t, b, "e2")
+	assertNoPiece(t, b, "d2")
 }
 
 func TestBoardMoveBishop(t *testing.T) {
@@ -161,6 +196,14 @@ func TestBoardMoveBishop(t *testing.T) {
 	assertNoPiece(t, b, "f8")
 }
 
+func TestBoardMoveBishopInvalid(t *testing.T) {
+	b := chess.NewBoard()
+
+	assertMoveError(t, b, "Bc3", "no bishop found that can move to c3")
+	assertMoveError(t, b, "Bc2", "c2 blocked by white pawn")
+	assertMoveError(t, b, "Bb2", "b2 blocked by white pawn")
+}
+
 func TestBoardMoveRook(t *testing.T) {
 	b := chess.NewBoard()
 
@@ -182,6 +225,15 @@ func TestBoardMoveRook(t *testing.T) {
 	assertNoPiece(t, b, "a8")
 }
 
+func TestBoardMoveRookInvalid(t *testing.T) {
+	b := chess.NewBoard()
+
+	assertMoveError(t, b, "Rb2", "b2 blocked by white pawn")
+	assertMoveError(t, b, "Rb1", "b1 blocked by white knight")
+	assertMoveError(t, b, "Ra2", "a2 blocked by white pawn")
+	assertMoveError(t, b, "Ra3", "no rook found that can move to a3")
+}
+
 func TestBoardMoveQueen(t *testing.T) {
 	b := chess.NewBoard()
 
@@ -201,6 +253,16 @@ func TestBoardMoveQueen(t *testing.T) {
 
 	assertPiece(t, b, "d6", chess.Queen, chess.Dark)
 	assertNoPiece(t, b, "d8")
+}
+
+func TestBoardMoveQueenInvalid(t *testing.T) {
+	b := chess.NewBoard()
+
+	assertMoveError(t, b, "Qd2", "d2 blocked by white pawn")
+	assertMoveError(t, b, "Qd1", "d1 blocked by white queen")
+	assertMoveError(t, b, "Qe1", "e1 blocked by white king")
+	assertMoveError(t, b, "Qc1", "c1 blocked by white bishop")
+	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
 }
 
 func assertPiece(t *testing.T, b *chess.Board, position string, name chess.PieceName, color chess.Color) {
