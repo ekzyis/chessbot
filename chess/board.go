@@ -8,6 +8,10 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
 )
 
 type Board struct {
@@ -18,8 +22,6 @@ type Board struct {
 
 func NewBoard() *Board {
 	board := &Board{turn: Light}
-
-	// TODO: include a-h, 1-8
 
 	board.mustSetPiece(Rook, Light, "a1")
 	board.mustSetPiece(Knight, Light, "b1")
@@ -95,7 +97,9 @@ func (b *Board) Image() *image.RGBA {
 
 	for yi := 0; yi < 8; yi++ {
 		for xi := 0; xi < 8; xi++ {
-			rect = image.Rect(xi*128, yi*128, (xi*128)+128, (yi*128)+128)
+			x := xi * 128
+			y := yi * 128
+			rect = image.Rect(x, y, x+128, y+128)
 			bg = image.NewUniform(getTileColor(xi, yi))
 			draw.Draw(img, rect, bg, p, draw.Src)
 
@@ -111,10 +115,102 @@ func (b *Board) Image() *image.RGBA {
 	}
 
 	if b.turn == Dark {
-		return flipImage(img)
+		img = flipImage(img)
+	}
+
+	for yi := 0; yi < 8; yi++ {
+		for xi := 0; xi < 8; xi++ {
+			if b.turn == Light {
+				drawCoordinate(img, xi, yi, false)
+			}
+			if b.turn == Dark {
+				drawCoordinate(img, xi, yi, true)
+			}
+		}
 	}
 
 	return img
+}
+
+func drawCoordinate(img *image.RGBA, x, y int, flipped bool) {
+	if x != 7 && y != 7 {
+		return
+	}
+
+	var column, row string
+	if y == 7 {
+		switch x {
+		case 0:
+			column = "a"
+		case 1:
+			column = "b"
+		case 2:
+			column = "c"
+		case 3:
+			column = "d"
+		case 4:
+			column = "e"
+		case 5:
+			column = "f"
+		case 6:
+			column = "g"
+		case 7:
+			column = "h"
+		}
+	}
+
+	if x == 7 {
+		yRow := y
+		if flipped {
+			yRow = 7 - y
+		}
+		switch yRow {
+		case 0:
+			row = "8"
+		case 1:
+			row = "7"
+		case 2:
+			row = "6"
+		case 3:
+			row = "5"
+		case 4:
+			row = "4"
+		case 5:
+			row = "3"
+		case 6:
+			row = "2"
+		case 7:
+			row = "1"
+		}
+	}
+
+	drawString := func(s string, origin fixed.Point26_6) {
+		color := getTileColor(x, y)
+		if !flipped && color == Light {
+			color = Dark
+		} else if !flipped {
+			color = Light
+		}
+		// TODO: use SN font and make it bold
+		d := &font.Drawer{
+			Dst:  img,
+			Src:  image.NewUniform(color),
+			Face: basicfont.Face7x13,
+			Dot:  origin,
+		}
+		d.DrawString(s)
+	}
+
+	var origin fixed.Point26_6
+	if column != "" {
+		origin = fixed.P(x*128+5, (y+1)*128-5)
+		drawString(column, origin)
+	}
+
+	if row != "" {
+		origin = fixed.P((x+1)*128-12, y*128+15)
+		drawString(row, origin)
+	}
 }
 
 func (b *Board) SetPiece(name PieceName, color Color, position string) error {
