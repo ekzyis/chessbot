@@ -730,12 +730,12 @@ func getXY(position string) (int, int, error) {
 	posX = runes[0]
 	posY = runes[1]
 
-	if posX < 'a' && posX > 'h' {
-		return -1, -1, fmt.Errorf("invalid posX: %s", position)
+	if posX < 'a' || posX > 'h' {
+		return -1, -1, fmt.Errorf("invalid move: %s", position)
 	}
 
-	if posY < '1' && posY > '8' {
-		return -1, -1, fmt.Errorf("invalid posY: %s", position)
+	if posY < '1' || posY > '8' {
+		return -1, -1, fmt.Errorf("invalid move: %s", position)
 	}
 
 	// image origin (0,0) is at top-left corner (a8)

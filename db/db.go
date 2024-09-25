@@ -57,8 +57,9 @@ func ItemHasReply(parentId int, userId int) (bool, error) {
 }
 
 func InsertItem(item *sn.Item) error {
-	if _, err := db.Exec(
-		`INSERT INTO items(id, user_id, text, parent_id) VALUES (?, ?, ?, NULLIF(?, 0))`,
+	if _, err := db.Exec(``+
+		`INSERT INTO items(id, user_id, text, parent_id) VALUES (?, ?, ?, NULLIF(?, 0)) `+
+		`ON CONFLICT DO UPDATE SET text = EXCLUDED.text, updated_at = CURRENT_TIMESTAMP`,
 		item.Id, item.User.Id, item.Text, item.ParentId); err != nil {
 		return err
 	}
