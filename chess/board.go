@@ -304,7 +304,6 @@ func (b *Board) Move(move string) error {
 		move = strings.Replace(move, captureFrom+"x", "", 1)
 	}
 
-	// TODO: parse captures e.g. exd5 or Nxd5
 	// TODO: parse promotions
 	// TODO: parse checks e.g. e5+
 	// TODO: parse checkmates e.g. e5#
