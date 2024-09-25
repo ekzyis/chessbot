@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -117,6 +119,10 @@ func handleGameStart(req *sn.Item) error {
 
 	// create board with initial move(s)
 	if b, err = chess.NewGame(move); err != nil {
+		if rand.Float32() > 0.99 {
+			// easter egg error message
+			return errors.New("Nice try, fed.")
+		}
 		return fmt.Errorf("failed to create new game from item %d: %v\n", req.Id, err)
 	}
 
@@ -171,6 +177,10 @@ func handleGameProgress(req *sn.Item) error {
 
 	// parse and execute new move
 	if err = b.Parse(move); err != nil {
+		if rand.Float32() > 0.99 {
+			// easter egg error message
+			return errors.New("Nice try, fed.")
+		}
 		return fmt.Errorf("failed to parse move %s: %v\n", move, err)
 	}
 
