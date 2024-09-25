@@ -273,35 +273,19 @@ func (b *Board) Move(move string) error {
 	var (
 		piece          string
 		targetPosition string
-		// the column from which the piece is captured.
+		// the x column from which the piece is captured.
 		// for example, this would be 'e' for exd4 and 'e' for Nexd4.
-		captureFrom    string
+		captureFrom    int
 		collisionPiece *Piece
 		err            error
 	)
 
-	if strings.Contains(move, "x") {
-		// capture move
-		parts := strings.Split(move, "x")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid move: %s", move)
-		}
-		if len(parts[0]) == 2 {
-			// example: Nexd4
-			captureFrom = parts[0][1:]
-		} else if len(parts[0]) == 1 {
-			if strings.ToLower(parts[0]) == parts[0] {
-				// example: exd4
-				captureFrom = parts[0]
-			} else {
-				// example: Nxd4
-				captureFrom = ""
-			}
-		} else {
-			return fmt.Errorf("invalid move: %s", move)
-		}
+	if captureFrom, err = parseCaptureMove(move); err != nil {
+		return err
+	}
 
-		move = strings.Replace(move, captureFrom+"x", "", 1)
+	if captureFrom != -1 {
+		move = strings.Split(move, "x")[1]
 	}
 
 	// TODO: parse promotions
@@ -362,11 +346,64 @@ func (b *Board) Move(move string) error {
 	return nil
 }
 
-func (b *Board) movePawn(position string, captureFrom string) error {
+func parseCaptureMove(move string) (int, error) {
+	var (
+		parts = strings.Split(move, "x")
+		from  = parts[0]
+	)
+
+	toIndex := func(column string) int {
+		switch column {
+		case "a":
+			return 0
+		case "b":
+			return 1
+		case "c":
+			return 2
+		case "d":
+			return 3
+		case "e":
+			return 4
+		case "f":
+			return 5
+		case "g":
+			return 6
+		case "h":
+			return 7
+		}
+		return -1
+	}
+
+	if !strings.Contains(move, "x") {
+		return -1, nil
+	}
+
+	if len(parts) != 2 {
+		return -1, fmt.Errorf("invalid move: %s", move)
+	}
+
+	if len(from) == 2 {
+		// example: Nexd4
+		return toIndex(from[1:]), nil
+	}
+
+	if len(from) == 1 {
+		if strings.ToLower(from) == from {
+			// example: exd4
+			return toIndex(from), nil
+		}
+		// example: Nxd4
+		return -1, nil
+	}
+
+	return -1, fmt.Errorf("invalid move: %s", move)
+}
+
+func (b *Board) movePawn(position string, captureFrom int) error {
 	var (
 		toX   int
 		toY   int
-		fromX int
+		fromX = captureFrom
 		fromY int
 		yPrev int
 		piece *Piece
@@ -377,11 +414,7 @@ func (b *Board) movePawn(position string, captureFrom string) error {
 		return err
 	}
 
-	if captureFrom != "" {
-		if fromX, fromY, err = getXY(captureFrom + position[1:2]); err != nil {
-			return err
-		}
-
+	if captureFrom != -1 {
 		if b.turn == Light {
 			fromY = toY + 1
 		} else {
