@@ -553,12 +553,13 @@ func (b *Board) movePawn(position string, fromX int, fromY int) error {
 
 func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) error {
 	var (
-		x     int
-		y     int
-		xPrev int
-		yPrev int
-		piece *Piece
-		err   error
+		x         int
+		y         int
+		xPrev     int
+		yPrev     int
+		p         *Piece
+		validPrev []*Square
+		err       error
 	)
 
 	if x, y, err = getXY(position); err != nil {
@@ -567,21 +568,20 @@ func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) erro
 
 	checkRookMove := b.validateMove(Rook, fromX, fromY)
 	checkQueenMove := b.validateMove(Queen, fromX, fromY)
+	checkMove := func(p *Piece, xPrev int, yPrev int) bool {
+		return (!queen && checkRookMove(p, xPrev, yPrev)) || (queen && checkQueenMove(p, xPrev, yPrev))
+	}
 
 	xPrev = x
 	yPrev = y
 	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
 		xPrev++
-		piece = b.getPiece(xPrev, yPrev)
-		if piece != nil {
-			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
-				b.tiles[xPrev][yPrev] = nil
-				b.tiles[x][y] = piece
-				return nil
-			} else {
-				// direction blocked by other piece
-				break
+		p = b.getPiece(xPrev, yPrev)
+		if p != nil {
+			if checkMove(p, xPrev, yPrev) {
+				validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 			}
+			break
 		}
 	}
 
@@ -589,12 +589,10 @@ func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) erro
 	yPrev = y
 	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
 		yPrev--
-		piece = b.getPiece(xPrev, yPrev)
-		if piece != nil {
-			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
-				b.tiles[xPrev][yPrev] = nil
-				b.tiles[x][y] = piece
-				return nil
+		p = b.getPiece(xPrev, yPrev)
+		if p != nil {
+			if checkMove(p, xPrev, yPrev) {
+				validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 			} else {
 				break
 			}
@@ -605,12 +603,10 @@ func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) erro
 	yPrev = y
 	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
 		xPrev--
-		piece = b.getPiece(xPrev, yPrev)
-		if piece != nil {
-			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
-				b.tiles[xPrev][yPrev] = nil
-				b.tiles[x][y] = piece
-				return nil
+		p = b.getPiece(xPrev, yPrev)
+		if p != nil {
+			if checkMove(p, xPrev, yPrev) {
+				validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 			} else {
 				break
 			}
@@ -621,16 +617,27 @@ func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) erro
 	yPrev = y
 	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
 		yPrev++
-		piece = b.getPiece(xPrev, yPrev)
-		if piece != nil {
-			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
-				b.tiles[xPrev][yPrev] = nil
-				b.tiles[x][y] = piece
-				return nil
+		p = b.getPiece(xPrev, yPrev)
+		if p != nil {
+			if checkMove(p, xPrev, yPrev) {
+				validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 			} else {
 				break
 			}
 		}
+	}
+
+	if len(validPrev) > 1 {
+		return fmt.Errorf("move ambiguous: %d rooks can move to %s", len(validPrev), position)
+	}
+
+	if len(validPrev) == 1 {
+		xPrev = validPrev[0].X
+		yPrev = validPrev[0].Y
+		p = b.getPiece(xPrev, yPrev)
+		b.tiles[x][y] = p
+		b.tiles[xPrev][yPrev] = nil
+		return nil
 	}
 
 	return fmt.Errorf("no rook found that can move to %s", position)

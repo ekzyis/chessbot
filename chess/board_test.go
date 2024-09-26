@@ -332,6 +332,14 @@ func TestBoardMoveRookInvalid(t *testing.T) {
 
 	// path blocked by pawn at d3
 	assertMoveError(t, b, "Rh3", "no rook found that can move to h3")
+
+	// ambiguous moves
+	b = chess.NewBoard()
+
+	assertParse(t, b, "a4 e6 h4 e5 Ra3 e4")
+
+	assertMoveError(t, b, "Rh3", "move ambiguous: 2 rooks can move to h3")
+	assertParse(t, b, "Rhh3")
 }
 
 func TestBoardMoveQueen(t *testing.T) {
