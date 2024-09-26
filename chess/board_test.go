@@ -266,6 +266,9 @@ func TestBoardMoveBishopInvalid(t *testing.T) {
 	assertMoveError(t, b, "Bc3", "no bishop found that can move to c3")
 	assertMoveError(t, b, "Bc2", "c2 blocked by white pawn")
 	assertMoveError(t, b, "Bb2", "b2 blocked by white pawn")
+
+	// path blocked by white pawn at e2
+	assertMoveError(t, b, "Bd3", "no bishop found that can move to d3")
 }
 
 func TestBoardMoveRook(t *testing.T) {
@@ -298,6 +301,11 @@ func TestBoardMoveRookInvalid(t *testing.T) {
 	assertMoveError(t, b, "Rb1", "b1 blocked by white knight")
 	assertMoveError(t, b, "Ra2", "a2 blocked by white pawn")
 	assertMoveError(t, b, "Ra3", "no rook found that can move to a3")
+
+	assertParse(t, b, "e3 e6 a4 d6 Ra3")
+
+	// path blocked by pawn at d3
+	assertMoveError(t, b, "Rh3", "no rook found that can move to h3")
 }
 
 func TestBoardMoveQueen(t *testing.T) {
@@ -330,6 +338,8 @@ func TestBoardMoveQueenInvalid(t *testing.T) {
 	assertMoveError(t, b, "Qd1", "d1 blocked by white queen")
 	assertMoveError(t, b, "Qe1", "e1 blocked by white king")
 	assertMoveError(t, b, "Qc1", "c1 blocked by white bishop")
+
+	// path blocked by white pawn at d2
 	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
 }
 
