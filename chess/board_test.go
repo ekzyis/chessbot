@@ -472,6 +472,16 @@ func TestBoardCheck(t *testing.T) {
 	assertParse(t, b, "Kxf7")
 }
 
+func TestBoardPin(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assertParse(t, b, "d4 e5 Nc3 Bb4")
+
+	assertMoveError(t, b, "Ne4", "invalid move Ne4: king is in check")
+}
+
 func assertParse(t *testing.T, b *chess.Board, moves string) {
 	assert.NoError(t, b.Parse(moves))
 }

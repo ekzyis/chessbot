@@ -294,7 +294,6 @@ func (b *Board) Move(move string) error {
 	// TODO: parse ambiguous captures for all pieces
 	// TODO: parse checkmates e.g. e5#
 	// TODO: parse O-O as kingside castle and O-O-O as queenside castle
-	// TODO: make sure pinned pieces cannot move
 
 	move_ := func() error {
 
