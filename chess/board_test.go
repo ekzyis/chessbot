@@ -18,6 +18,8 @@ func init() {
 }
 
 func TestBoardInitial(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertPiece(t, b, "a1", chess.Rook, chess.Light)
@@ -58,6 +60,8 @@ func TestBoardInitial(t *testing.T) {
 }
 
 func TestBoardMovePawn(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertParse(t, b, "e4")
@@ -72,6 +76,8 @@ func TestBoardMovePawn(t *testing.T) {
 }
 
 func TestBoardMovePawnInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "a5", "no pawn found that can move to a5")
@@ -96,6 +102,8 @@ func TestBoardMovePawnInvalid(t *testing.T) {
 }
 
 func TestBoardMovePawnCapture(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertParse(t, b, "e4 d5 exd5")
@@ -123,6 +131,8 @@ func TestBoardMovePawnCapture(t *testing.T) {
 }
 
 func TestBoardMoveKnight(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertParse(t, b, "Nf3")
@@ -159,6 +169,8 @@ func TestBoardMoveKnight(t *testing.T) {
 }
 
 func TestBoardMoveKnightInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	// out of reach
@@ -180,6 +192,8 @@ func TestBoardMoveKnightInvalid(t *testing.T) {
 }
 
 func TestBoardMoveKnightCapture(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertParse(t, b, "e4 Nf6 d4 Nxe4")
@@ -224,6 +238,8 @@ func TestBoardMoveKnightCapture(t *testing.T) {
 }
 
 func TestBoardMoveBishop(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Bc4", "no bishop found that can move to c4")
@@ -243,6 +259,8 @@ func TestBoardMoveBishop(t *testing.T) {
 }
 
 func TestBoardMoveBishopInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Bc3", "no bishop found that can move to c3")
@@ -251,6 +269,8 @@ func TestBoardMoveBishopInvalid(t *testing.T) {
 }
 
 func TestBoardMoveRook(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Ra3", "no rook found that can move to a3")
@@ -270,6 +290,8 @@ func TestBoardMoveRook(t *testing.T) {
 }
 
 func TestBoardMoveRookInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Rb2", "b2 blocked by white pawn")
@@ -279,6 +301,8 @@ func TestBoardMoveRookInvalid(t *testing.T) {
 }
 
 func TestBoardMoveQueen(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
@@ -298,6 +322,8 @@ func TestBoardMoveQueen(t *testing.T) {
 }
 
 func TestBoardMoveQueenInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Qd2", "d2 blocked by white pawn")
@@ -308,6 +334,8 @@ func TestBoardMoveQueenInvalid(t *testing.T) {
 }
 
 func TestBoardMoveKing(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertParse(t, b, "e4 e5 Ke2 Ke7 Kf3 Kd6 Kg3 Kc6")
@@ -323,6 +351,8 @@ func TestBoardMoveKing(t *testing.T) {
 }
 
 func TestBoardMoveKingInvalid(t *testing.T) {
+	t.Parallel()
+
 	b := chess.NewBoard()
 
 	assertMoveError(t, b, "Ke1", "e1 blocked by white king")
