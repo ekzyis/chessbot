@@ -53,6 +53,14 @@ func tickGameStart(c *sn.Client) {
 		}
 
 		if err = handleGameStart(&n.Item); err != nil {
+
+			// don't reply to mentions that we failed to parse as a game start
+			// to support unrelated mentions
+			if err.Error() == "failed to parse game start" {
+				log.Printf("ignoring error for item %d: %v\n", n.Item.Id, err)
+				return
+			}
+
 			if _, err2 := createComment(n.Item.Id, fmt.Sprintf("`%v`", err)); err2 != nil {
 				log.Printf("failed to reply with error to item %d: %v\n", n.Item.Id, err2)
 			} else {
@@ -89,6 +97,12 @@ func tickGameProgress(c *sn.Client) {
 		}
 
 		if err = handleGameProgress(&n.Item); err != nil {
+
+			if err.Error() == "failed to parse game update" {
+				log.Printf("ignoring error for item %d: %v\n", n.Item.Id, err)
+				return
+			}
+
 			if _, err2 := createComment(n.Item.Id, fmt.Sprintf("`%v`", err)); err2 != nil {
 				log.Printf("failed to reply with error to item %d: %v\n", n.Item.Id, err2)
 			} else {
@@ -109,16 +123,16 @@ func handleGameStart(req *sn.Item) error {
 		err    error
 	)
 
-	if move, err = parseGameStart(req.Text); err != nil {
-		return err
-	}
-
 	// Immediately save game start request to db so we can store our reply to it in case of error.
 	// We set parentId to 0 such that parent_id will be NULL in the db and not hit foreign key constraints.
 	req.ParentId = 0
 
 	if err = db.InsertItem(req); err != nil {
 		return fmt.Errorf("failed to insert item %d into db: %v\n", req.Id, err)
+	}
+
+	if move, err = parseGameStart(req.Text); err != nil {
+		return err
 	}
 
 	// create board with initial move(s)
@@ -169,9 +183,10 @@ func handleGameProgress(req *sn.Item) error {
 			continue
 		}
 
-		// TODO: better parsing of moves in replies using regexp for example or enforce a specific format
-		// since players might include more than just the move in their replies
-		moves := strings.Trim(strings.ReplaceAll(item.Text, "@chess", ""), " ")
+		var moves string
+		if moves, err = parseGameProgress(item.Text); err != nil {
+			return err
+		}
 
 		// parse and execute existing moves
 		if err = b.Parse(moves); err != nil {
@@ -180,6 +195,11 @@ func handleGameProgress(req *sn.Item) error {
 	}
 
 	// parse and execute new move
+
+	if move, err = parseGameProgress(move); err != nil {
+		return err
+	}
+
 	if err = b.Parse(move); err != nil {
 		if rand.Float32() > 0.99 {
 			// easter egg error message
@@ -226,6 +246,27 @@ func createComment(parentId int, text string) (*sn.Item, error) {
 
 func parseGameStart(input string) (string, error) {
 	for _, line := range strings.Split(input, "\n") {
+		line = strings.Trim(line, " ")
+
+		if !strings.HasPrefix(line, "@chess") {
+			continue
+		}
+
+		return strings.Trim(strings.ReplaceAll(line, "@chess", ""), " "), nil
+	}
+
+	return "", errors.New("failed to parse game start")
+}
+
+func parseGameProgress(input string) (string, error) {
+	lines := strings.Split(input, "\n")
+	words := strings.Split(input, " ")
+
+	if len(lines) == 1 && len(words) == 1 {
+		return strings.Trim(input, " "), nil
+	}
+
+	for _, line := range strings.Split(input, "\n") {
 		if !strings.Contains(line, "@chess") {
 			continue
 		}
@@ -233,5 +274,5 @@ func parseGameStart(input string) (string, error) {
 		return strings.Trim(strings.ReplaceAll(line, "@chess", ""), " "), nil
 	}
 
-	return "", errors.New("failed to parse game start request")
+	return "", errors.New("failed to parse game update")
 }
