@@ -197,7 +197,6 @@ func TestBoardMoveKnightCapture(t *testing.T) {
 	b := chess.NewBoard()
 
 	assertParse(t, b, "e4 Nf6 d4 Nxe4")
-
 	assertPiece(t, b, "e4", chess.Knight, chess.Dark)
 	assertPiece(t, b, "d4", chess.Pawn, chess.Light)
 	assertNoPiece(t, b, "g8")
@@ -296,10 +295,7 @@ func TestBoardMoveRook(t *testing.T) {
 
 	assertMoveError(t, b, "Ra3", "no rook found that can move to a3")
 
-	assertParse(t, b, "a4")
-	assertParse(t, b, "a5")
-
-	assertParse(t, b, "Ra3")
+	assertParse(t, b, "a4 a5 Ra3")
 
 	assertPiece(t, b, "a3", chess.Rook, chess.Light)
 	assertNoPiece(t, b, "a1")
@@ -308,6 +304,18 @@ func TestBoardMoveRook(t *testing.T) {
 
 	assertPiece(t, b, "a6", chess.Rook, chess.Dark)
 	assertNoPiece(t, b, "a8")
+}
+
+func TestBoardMoveRookCapture(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assertParse(t, b, "a4 e6 h4 e5 Ra3 e4 Rhh3 e3 Raxe3")
+
+	assertPiece(t, b, "e3", chess.Rook, chess.Light)
+	assertPiece(t, b, "h3", chess.Rook, chess.Light)
+	assertNoPiece(t, b, "a3")
 }
 
 func TestBoardMoveRookInvalid(t *testing.T) {

@@ -271,34 +271,18 @@ func (b *Board) Parse(pgn string) error {
 
 func (b *Board) Move(move string) error {
 	var (
-		piece          string
-		targetPosition string
-		// the x column from which the piece is captured.
-		// for example, this would be 'e' for exd4 and 'e' for Nexd4.
-		captureFrom    int
+		to    string
+		piece string
+		// if the move is ambiguous, the originating square rank must be given
+		// see https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Disambiguating_moves
+		fromX          int
+		fromY          int
 		collisionPiece *Piece
 		err            error
 	)
 
-	if captureFrom, err = parseCaptureMove(move); err != nil {
+	if piece, fromX, fromY, to, err = parseMove(move); err != nil {
 		return err
-	}
-
-	if captureFrom != -1 {
-		parts := strings.Split(move, "x")
-		piece := parts[0]
-		position := parts[1]
-		if strings.ToLower(piece) == piece {
-			// pawn capture move like exd4
-			move = position
-		} else {
-			// piece capture move like Nbxd4
-			// remove the capture column from the piece
-			move = piece[:1] + position
-		}
-	} else {
-		// even if captureFrom is not set, it might still be a capture move just unambiguous like Nxe4
-		move = strings.Replace(move, "x", "", 1)
 	}
 
 	// TODO: parse ambiguous captures for all pieces
@@ -311,38 +295,30 @@ func (b *Board) Move(move string) error {
 	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
 
 	move_ := func() error {
-		if len(move) == 2 {
-			return b.movePawn(move, captureFrom)
+
+		// collision detection
+		if collisionPiece, err = b.getCollision(to); err != nil {
+			return fmt.Errorf("invalid move %s: %v", move, err)
+		} else if collisionPiece != nil {
+			return fmt.Errorf("invalid move %s: position %s blocked by %s", move, to, collisionPiece)
 		}
 
-		if len(move) == 3 {
-			piece = move[0:1]
-			targetPosition = move[1:3]
-
-			// collision detection
-			if collisionPiece, err = b.getCollision(targetPosition); err != nil {
-				return fmt.Errorf("invalid move %s: %v", move, err)
-			} else if collisionPiece != nil {
-				return fmt.Errorf("invalid move %s: position %s blocked by %s", move, targetPosition, collisionPiece)
-			}
-
-			switch strings.ToLower(piece) {
-			case "r":
-				return b.moveRook(targetPosition, false)
-			case "b":
-				return b.moveBishop(targetPosition, false)
-			case "n":
-				return b.moveKnight(targetPosition, captureFrom)
-			case "q":
-				return b.moveQueen(targetPosition)
-			case "k":
-				return b.moveKing(targetPosition)
-			default:
-				return fmt.Errorf("invalid move %s: %v", move, err)
-			}
+		switch strings.ToLower(piece) {
+		case "p":
+			return b.movePawn(to, fromX, fromY)
+		case "r":
+			return b.moveRook(to, false, fromX, fromY)
+		case "b":
+			return b.moveBishop(to, false)
+		case "n":
+			return b.moveKnight(to, fromX, fromY)
+		case "q":
+			return b.moveQueen(to)
+		case "k":
+			return b.moveKing(to)
+		default:
+			return fmt.Errorf("invalid move %s: %v", move, err)
 		}
-
-		return fmt.Errorf("invalid move %s: %v", move, err)
 	}
 
 	if err = move_(); err != nil {
@@ -360,65 +336,154 @@ func (b *Board) Move(move string) error {
 	return nil
 }
 
-func parseCaptureMove(move string) (int, error) {
+func parseMove(move string) (string, int, int, string, error) {
 	var (
-		parts = strings.Split(move, "x")
-		from  = parts[0]
+		piece string
+		fromX = -1
+		fromY = -1
+		to    string
+		from  string
 	)
 
-	toIndex := func(column string) int {
-		switch column {
-		case "a":
-			return 0
-		case "b":
-			return 1
-		case "c":
-			return 2
-		case "d":
-			return 3
-		case "e":
-			return 4
-		case "f":
-			return 5
-		case "g":
-			return 6
-		case "h":
-			return 7
+	if strings.Contains(move, "x") {
+		return parseCaptureMove(move)
+	}
+
+	if len(move) < 2 {
+		return piece, fromX, fromY, to, fmt.Errorf("invalid move: %s", move)
+	}
+
+	if len(move) == 2 {
+		// pawn move
+		piece = "p"
+		to = move
+		return piece, fromX, fromY, to, nil
+	}
+
+	if len(move) == 3 {
+		// unambiguous piece move
+		piece = move[0:1]
+		to = move[1:]
+		return piece, fromX, fromY, to, nil
+	}
+
+	// last two characters are the target position
+	to = move[len(move)-2:]
+
+	// everything before is about origin
+	from = move[:len(move)-2]
+
+	// piece is first character
+	piece = from[0:1]
+
+	// we can ignore piece from here on
+	from = from[1:]
+
+	if len(from) == 1 {
+		// rank or file given
+		if from[0] >= 'a' && from[0] <= 'h' {
+			// file given
+			return piece, toFile(rune(from[0])), -1, to, nil
 		}
-		return -1
-	}
 
-	if !strings.Contains(move, "x") {
-		return -1, nil
-	}
+		if from[0] >= '1' && from[0] <= '8' {
+			// rank given
+			return piece, -1, toRank(rune(from[0])), to, nil
+		}
 
-	if len(parts) != 2 {
-		return -1, fmt.Errorf("invalid move: %s", move)
+		return "", -1, -1, "", fmt.Errorf("invalid move: %s", move)
 	}
 
 	if len(from) == 2 {
-		// example: Nexd4
-		return toIndex(from[1:]), nil
+		// file and rank given
+		return piece, toFile(rune(from[0])), toRank(rune(from[1])), to, nil
 	}
 
-	if len(from) == 1 {
-		if strings.ToLower(from) == from {
-			// example: exd4
-			return toIndex(from), nil
-		}
-		// example: Nxd4
-		return -1, nil
-	}
-
-	return -1, fmt.Errorf("invalid move: %s", move)
+	return "", -1, -1, "", fmt.Errorf("invalid move: %s", move)
 }
 
-func (b *Board) movePawn(position string, captureFrom int) error {
+func parseCaptureMove(move string) (string, int, int, string, error) {
+	var (
+		parts = strings.Split(move, "x")
+		piece string
+		fromX = -1
+		fromY = -1
+		from  = parts[0]
+		to    = parts[1]
+	)
+
+	if len(from) == 1 {
+		// pawn move with rank given (exd4) or piece move (Nxe5)
+		if strings.ToLower(from) == from {
+			piece = "p"
+			fromX = toFile(rune(from[0]))
+			return piece, fromX, fromY, to, nil
+		}
+
+		piece = from
+		return piece, fromX, fromY, to, nil
+	}
+
+	// piece is always first character
+	piece = from[0:1]
+
+	if len(from) == 2 {
+		// rank or file given
+		fromX = toFile(rune(from[1]))
+		fromY = toRank(rune(from[1]))
+
+		if fromX == -1 && fromY == -1 {
+			return "", -1, -1, "", fmt.Errorf("invalid move: %s", move)
+		}
+
+		return piece, fromX, fromY, to, nil
+	}
+
+	if len(from) == 3 {
+		// both file and rank given
+		fromX = toFile(rune(from[1]))
+		fromY = toRank(rune(from[1]))
+
+		if fromX == -1 || fromY == -1 {
+			return "", -1, -1, "", fmt.Errorf("invalid move: %s", move)
+		}
+
+		return piece, fromX, fromY, to, nil
+	}
+
+	return "", -1, -1, "", fmt.Errorf("invalid move: %s", move)
+}
+
+func toFile(r rune) int {
+	if r >= 'a' && r <= 'h' {
+		return int(r - 'a')
+	}
+	return -1
+}
+
+func toRank(r rune) int {
+	if r >= '1' && r <= '8' {
+		return int('8' - r)
+	}
+	return -1
+}
+
+func (b *Board) validateMove(search PieceName, fromX int, fromY int) func(*Piece, int, int) bool {
+	return func(p *Piece, xPrev int, yPrev int) bool {
+		// does piece originate from given origin?
+		from := (fromX == -1 || xPrev == fromX) && (fromY == -1 || yPrev == fromY)
+
+		// is this the piece we're looking for?
+		found := p != nil && p.Name == search && p.Color == b.turn
+
+		return from && found
+	}
+}
+
+func (b *Board) movePawn(position string, fromX int, fromY int) error {
 	var (
 		toX   int
 		toY   int
-		fromX = captureFrom
-		fromY int
 		yPrev int
 		piece *Piece
 		err   error
@@ -428,7 +493,7 @@ func (b *Board) movePawn(position string, captureFrom int) error {
 		return err
 	}
 
-	if captureFrom != -1 {
+	if fromX != -1 {
 		if b.turn == Light {
 			fromY = toY + 1
 		} else {
@@ -486,7 +551,7 @@ func (b *Board) movePawn(position string, captureFrom int) error {
 	return fmt.Errorf("no pawn found that can move to %s", position)
 }
 
-func (b *Board) moveRook(position string, queen bool) error {
+func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) error {
 	var (
 		x     int
 		y     int
@@ -500,13 +565,16 @@ func (b *Board) moveRook(position string, queen bool) error {
 		return err
 	}
 
+	checkRookMove := b.validateMove(Rook, fromX, fromY)
+	checkQueenMove := b.validateMove(Queen, fromX, fromY)
+
 	xPrev = x
 	yPrev = y
 	for xPrev >= 0 && xPrev < 8 && yPrev >= 0 && yPrev < 8 {
 		xPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
+			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -523,7 +591,7 @@ func (b *Board) moveRook(position string, queen bool) error {
 		yPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
+			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -539,7 +607,7 @@ func (b *Board) moveRook(position string, queen bool) error {
 		xPrev--
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
+			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -555,7 +623,7 @@ func (b *Board) moveRook(position string, queen bool) error {
 		yPrev++
 		piece = b.getPiece(xPrev, yPrev)
 		if piece != nil {
-			if ((!queen && piece.Name == Rook) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
+			if (!queen && checkRookMove(piece, xPrev, yPrev)) || (queen && checkQueenMove(piece, xPrev, yPrev)) {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
 				return nil
@@ -654,7 +722,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 	return fmt.Errorf("no bishop found that can move to %s", position)
 }
 
-func (b *Board) moveKnight(position string, captureFrom int) error {
+func (b *Board) moveKnight(position string, fromX int, fromY int) error {
 	var (
 		x     int
 		y     int
@@ -668,17 +736,12 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 		return err
 	}
 
-	checkMove := func(p *Piece, xPrev int) bool {
-		// capture condition fulfilled if capture
-		capture := captureFrom == -1 || xPrev == captureFrom
-		found := p != nil && p.Name == Knight && p.Color == b.turn
-		return capture && found
-	}
+	checkMove := b.validateMove(Knight, fromX, fromY)
 
 	xPrev = x + 1
 	yPrev = y - 2
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -687,7 +750,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x + 2
 	yPrev = y - 1
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -696,7 +759,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x + 2
 	yPrev = y + 1
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -705,7 +768,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x + 1
 	yPrev = y + 2
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -714,7 +777,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x - 1
 	yPrev = y + 2
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -723,7 +786,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x - 2
 	yPrev = y + 1
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -732,7 +795,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x - 2
 	yPrev = y - 1
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -741,7 +804,7 @@ func (b *Board) moveKnight(position string, captureFrom int) error {
 	xPrev = x - 1
 	yPrev = y - 2
 	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev) {
+	if checkMove(piece, xPrev, yPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -759,7 +822,7 @@ func (b *Board) moveQueen(position string) error {
 		return nil
 	}
 
-	if err = b.moveRook(position, true); err == nil {
+	if err = b.moveRook(position, true, -1, -1); err == nil {
 		return nil
 	}
 
