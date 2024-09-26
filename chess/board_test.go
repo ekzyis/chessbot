@@ -173,6 +173,38 @@ func TestBoardMoveKnightCapture(t *testing.T) {
 	assertNoPiece(t, b, "g8")
 	assertNoPiece(t, b, "e2")
 	assertNoPiece(t, b, "d2")
+
+	// test ambiguous capture
+
+	b = chess.NewBoard()
+
+	b.Parse("e4 e5 Nf3 d6 Nc3 d5 Nb5 d4 Nbxd4")
+
+	assertPiece(t, b, "e4", chess.Pawn, chess.Light)
+	assertPiece(t, b, "e5", chess.Pawn, chess.Dark)
+	assertPiece(t, b, "d4", chess.Knight, chess.Light)
+	assertPiece(t, b, "f3", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "g1")
+	assertNoPiece(t, b, "b1")
+	assertNoPiece(t, b, "c3")
+	assertNoPiece(t, b, "d6")
+	assertNoPiece(t, b, "d5")
+	assertNoPiece(t, b, "b5")
+
+	b = chess.NewBoard()
+
+	b.Parse("e4 e5 Nf3 d6 Nc3 d5 Nb5 d4 Nfxd4")
+
+	assertPiece(t, b, "e4", chess.Pawn, chess.Light)
+	assertPiece(t, b, "e5", chess.Pawn, chess.Dark)
+	assertPiece(t, b, "d4", chess.Knight, chess.Light)
+	assertPiece(t, b, "b5", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "g1")
+	assertNoPiece(t, b, "b1")
+	assertNoPiece(t, b, "c3")
+	assertNoPiece(t, b, "d6")
+	assertNoPiece(t, b, "d5")
+	assertNoPiece(t, b, "f3")
 }
 
 func TestBoardMoveBishop(t *testing.T) {

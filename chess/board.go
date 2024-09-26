@@ -285,7 +285,20 @@ func (b *Board) Move(move string) error {
 	}
 
 	if captureFrom != -1 {
-		move = strings.Split(move, "x")[1]
+		parts := strings.Split(move, "x")
+		piece := parts[0]
+		position := parts[1]
+		if strings.ToLower(piece) == piece {
+			// pawn capture move like exd4
+			move = position
+		} else {
+			// piece capture move like Nbxd4
+			// remove the capture column from the piece
+			move = piece[:1] + position
+		}
+	} else {
+		// even if captureFrom is not set, it might still be a capture move just unambiguous like Nxe4
+		move = strings.Replace(move, "x", "", 1)
 	}
 
 	// TODO: parse promotions
@@ -318,7 +331,7 @@ func (b *Board) Move(move string) error {
 			case "b":
 				return b.moveBishop(targetPosition, false)
 			case "n":
-				return b.moveKnight(targetPosition)
+				return b.moveKnight(targetPosition, captureFrom)
 			case "q":
 				return b.moveQueen(targetPosition)
 			case "k":
@@ -640,7 +653,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 	return fmt.Errorf("no bishop found that can move to %s", position)
 }
 
-func (b *Board) moveKnight(position string) error {
+func (b *Board) moveKnight(position string, captureFrom int) error {
 	var (
 		x     int
 		y     int
@@ -654,10 +667,17 @@ func (b *Board) moveKnight(position string) error {
 		return err
 	}
 
+	checkMove := func(p *Piece, xPrev int) bool {
+		// capture condition fulfilled if capture
+		capture := captureFrom == -1 || xPrev == captureFrom
+		found := p != nil && p.Name == Knight && p.Color == b.turn
+		return capture && found
+	}
+
 	xPrev = x + 1
 	yPrev = y - 2
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -666,7 +686,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x + 2
 	yPrev = y - 1
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -675,7 +695,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x + 2
 	yPrev = y + 1
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -684,7 +704,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x + 1
 	yPrev = y + 2
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -693,7 +713,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x - 1
 	yPrev = y + 2
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -702,7 +722,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x - 2
 	yPrev = y + 1
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -711,7 +731,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x - 2
 	yPrev = y - 1
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
@@ -720,7 +740,7 @@ func (b *Board) moveKnight(position string) error {
 	xPrev = x - 1
 	yPrev = y - 2
 	piece = b.getPiece(xPrev, yPrev)
-	if piece != nil && piece.Name == Knight && piece.Color == b.turn {
+	if checkMove(piece, xPrev) {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
 		return nil
