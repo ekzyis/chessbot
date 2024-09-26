@@ -130,6 +130,39 @@ func TestBoardMovePawnCapture(t *testing.T) {
 	assertPiece(t, b, "e4", chess.Pawn, chess.Light)
 }
 
+func TestBoardPawnPromotion(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+	b.Parse("a4 e6 a5 e5 a6 e4 axb7 e3 bxa8=Q")
+
+	assertPiece(t, b, "a8", chess.Queen, chess.Light)
+	assertNoPiece(t, b, "b7")
+
+	b = chess.NewBoard()
+	b.Parse("a4 e6 a5 e5 a6 e4 axb7 e3 bxa8=R")
+
+	assertPiece(t, b, "a8", chess.Rook, chess.Light)
+	assertNoPiece(t, b, "b7")
+
+	b = chess.NewBoard()
+	b.Parse("a4 e6 a5 e5 a6 e4 axb7 e3 bxa8=B")
+
+	assertPiece(t, b, "a8", chess.Bishop, chess.Light)
+	assertNoPiece(t, b, "b7")
+
+	b = chess.NewBoard()
+	b.Parse("a4 e6 a5 e5 a6 e4 axb7 e3 bxa8=N")
+
+	assertPiece(t, b, "a8", chess.Knight, chess.Light)
+	assertNoPiece(t, b, "b7")
+
+	b = chess.NewBoard()
+	b.Parse("a4 e6 a5 e5 a6 e4 axb7 e3")
+
+	assertMoveError(t, b, "bxa8=K", "invalid promotion: K")
+}
+
 func TestBoardMoveKnight(t *testing.T) {
 	t.Parallel()
 

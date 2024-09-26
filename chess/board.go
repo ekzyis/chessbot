@@ -277,16 +277,21 @@ func (b *Board) Move(move string) error {
 		// see https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Disambiguating_moves
 		fromX          int
 		fromY          int
+		promotion      string
 		collisionPiece *Piece
 		err            error
 	)
+
+	if parts := strings.Split(move, "="); len(parts) > 1 {
+		promotion = parts[1]
+		move = parts[0]
+	}
 
 	if piece, fromX, fromY, to, err = parseMove(move); err != nil {
 		return err
 	}
 
 	// TODO: parse ambiguous captures for all pieces
-	// TODO: parse promotions
 	// TODO: parse checks e.g. e5+
 	// TODO: parse checkmates e.g. e5#
 	// TODO: parse O-O as kingside castle and O-O-O as queenside castle
@@ -305,7 +310,7 @@ func (b *Board) Move(move string) error {
 
 		switch strings.ToLower(piece) {
 		case "p":
-			return b.movePawn(to, fromX, fromY)
+			return b.movePawn(to, fromX, fromY, promotion)
 		case "r":
 			return b.moveRook(to, false, fromX, fromY)
 		case "b":
@@ -480,7 +485,7 @@ func (b *Board) validateMove(search PieceName, fromX int, fromY int) func(*Piece
 	}
 }
 
-func (b *Board) movePawn(position string, fromX int, fromY int) error {
+func (b *Board) movePawn(position string, fromX int, fromY int, promotion string) error {
 	var (
 		toX   int
 		toY   int
@@ -513,6 +518,9 @@ func (b *Board) movePawn(position string, fromX int, fromY int) error {
 
 		b.tiles[fromX][fromY] = nil
 		b.tiles[toX][toY] = piece
+		if promotion != "" {
+			return b.promotePawn(toX, toY, promotion)
+		}
 		return nil
 	}
 
@@ -532,6 +540,9 @@ func (b *Board) movePawn(position string, fromX int, fromY int) error {
 	if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
 		b.tiles[toX][yPrev] = nil
 		b.tiles[toX][toY] = piece
+		if promotion != "" {
+			return b.promotePawn(toX, toY, promotion)
+		}
 		return nil
 	}
 
@@ -545,10 +556,30 @@ func (b *Board) movePawn(position string, fromX int, fromY int) error {
 	if piece != nil && piece.Name == Pawn && piece.Color == b.turn {
 		b.tiles[toX][yPrev] = nil
 		b.tiles[toX][toY] = piece
+		if promotion != "" {
+			return b.promotePawn(toX, toY, promotion)
+		}
 		return nil
 	}
 
 	return fmt.Errorf("no pawn found that can move to %s", position)
+}
+
+func (b *Board) promotePawn(x int, y int, name string) error {
+	switch strings.ToLower(name) {
+	case "q":
+		b.tiles[x][y] = &Piece{Name: Queen, Color: b.turn}
+	case "r":
+		b.tiles[x][y] = &Piece{Name: Rook, Color: b.turn}
+	case "b":
+		b.tiles[x][y] = &Piece{Name: Bishop, Color: b.turn}
+	case "n":
+		b.tiles[x][y] = &Piece{Name: Knight, Color: b.turn}
+	default:
+		return fmt.Errorf("invalid promotion: %s", name)
+	}
+
+	return nil
 }
 
 func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) error {
