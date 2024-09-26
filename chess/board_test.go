@@ -389,6 +389,8 @@ func TestBoardMoveQueenInvalid(t *testing.T) {
 
 	// path blocked by white pawn at d2
 	assertMoveError(t, b, "Qd3", "no queen found that can move to d3")
+
+	// TODO: ambiguous queen moves require pawn promotion
 }
 
 func TestBoardMoveKing(t *testing.T) {
