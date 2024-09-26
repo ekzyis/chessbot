@@ -242,7 +242,7 @@ func (b *Board) AlgebraicNotation() string {
 	var text string
 	for i, m := range b.Moves {
 		if i%2 == 0 {
-			text += fmt.Sprintf("%d. %s", i/2+1, m)
+			text += fmt.Sprintf("%d.%s", i/2+1, m)
 		} else {
 			text += fmt.Sprintf(" %s ", m)
 		}
