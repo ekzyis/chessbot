@@ -53,6 +53,19 @@ func ItemHasReply(parentId int, userId int) (bool, error) {
 		return true, err
 	}
 
+	if count > 0 {
+		return true, nil
+	}
+
+	// check if parent already exists, this means we ignored it
+	if err = db.QueryRow(`SELECT COUNT(1) FROM items WHERE id = ?`, parentId).Scan(&count); err != nil {
+		return true, err
+	}
+
+	if count > 0 {
+		log.Printf("ignoring known item %d", parentId)
+	}
+
 	return count > 0, nil
 }
 
