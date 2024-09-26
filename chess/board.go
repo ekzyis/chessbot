@@ -1334,11 +1334,11 @@ func getXY(position string) (int, int, error) {
 	posY = runes[1]
 
 	if posX < 'a' || posX > 'h' {
-		return -1, -1, fmt.Errorf("invalid move: %s", position)
+		return -1, -1, fmt.Errorf("square does not exist: %s", position)
 	}
 
 	if posY < '1' || posY > '8' {
-		return -1, -1, fmt.Errorf("invalid move: %s", position)
+		return -1, -1, fmt.Errorf("square does not exist: %s", position)
 	}
 
 	// image origin (0,0) is at top-left corner (a8)
