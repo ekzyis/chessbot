@@ -1330,6 +1330,11 @@ func getXY(position string) (int, int, error) {
 		y    int
 	)
 	runes := []rune(position)
+
+	if len(runes) != 2 {
+		return -1, -1, fmt.Errorf("square does not exist: %s", position)
+	}
+
 	posX = runes[0]
 	posY = runes[1]
 
