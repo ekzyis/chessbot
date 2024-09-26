@@ -278,6 +278,7 @@ func (b *Board) Move(move string) error {
 		fromX          int
 		fromY          int
 		promotion      string
+		castle         = false
 		collisionPiece *Piece
 		err            error
 	)
@@ -289,6 +290,14 @@ func (b *Board) Move(move string) error {
 
 	if piece, fromX, fromY, to, err = parseMove(move); err != nil {
 		return err
+	}
+
+	if move == "O-O" {
+		castle = true
+		if b.turn == Dark {
+			to = "g8"
+			fromY = 0
+		}
 	}
 
 	// TODO: parse ambiguous captures for all pieces
@@ -316,7 +325,7 @@ func (b *Board) Move(move string) error {
 		case "q":
 			return b.moveQueen(to)
 		case "k":
-			return b.moveKing(to)
+			return b.moveKing(to, castle)
 		default:
 			return fmt.Errorf("invalid move %s: %v", move, err)
 		}
@@ -355,6 +364,10 @@ func parseMove(move string) (string, int, int, string, error) {
 		to    string
 		from  string
 	)
+
+	if move == "O-O" {
+		return "K", 5, 7, "g1", nil
+	}
 
 	if strings.Contains(move, "x") {
 		return parseCaptureMove(move)
@@ -1113,7 +1126,7 @@ func (b *Board) moveQueen(position string) error {
 	return fmt.Errorf("no queen found that can move to %s", position)
 }
 
-func (b *Board) moveKing(position string) error {
+func (b *Board) moveKing(position string, castle bool) error {
 	var (
 		x     int
 		y     int
@@ -1125,6 +1138,44 @@ func (b *Board) moveKing(position string) error {
 
 	if x, y, err = getXY(position); err != nil {
 		return err
+	}
+
+	if castle {
+		// TODO: check if castle is allowed
+
+		y := 7
+		if b.turn == Dark {
+			y = 0
+		}
+
+		if (b.turn == Light && position == "g1") || (b.turn == Dark && position == "g8") {
+			// kingside castle
+
+			king := b.getPiece(4, y)
+			if king == nil || king.Color != b.turn || king.Name != King {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			if b.getPiece(5, y) != nil {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			if b.getPiece(6, y) != nil {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			rook := b.getPiece(7, y)
+			if rook == nil || rook.Color != b.turn || rook.Name != Rook {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			b.tiles[6][y] = king
+			b.tiles[4][y] = nil
+			b.tiles[5][y] = rook
+			b.tiles[7][y] = nil
+
+			return nil
+		}
 	}
 
 	// ^
