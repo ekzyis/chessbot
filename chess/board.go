@@ -368,6 +368,8 @@ func parseMove(move string) (string, int, int, string, error) {
 		from  string
 	)
 
+	move = strings.TrimSuffix(move, "+")
+
 	if move == "O-O" {
 		return "K", 5, 7, "g1", nil
 	}
