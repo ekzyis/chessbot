@@ -292,17 +292,20 @@ func (b *Board) Move(move string) error {
 		return err
 	}
 
-	if move == "O-O" {
+	if move == "O-O" || move == "O-O-O" {
 		castle = true
 		if b.turn == Dark {
-			to = "g8"
 			fromY = 0
+			if move == "O-O" {
+				to = "g8"
+			} else {
+				to = "c8"
+			}
 		}
 	}
 
 	// TODO: parse ambiguous captures for all pieces
 	// TODO: parse checkmates e.g. e5#
-	// TODO: parse O-O as kingside castle and O-O-O as queenside castle
 
 	move_ := func() error {
 
@@ -367,6 +370,10 @@ func parseMove(move string) (string, int, int, string, error) {
 
 	if move == "O-O" {
 		return "K", 5, 7, "g1", nil
+	}
+
+	if move == "O-O-O" {
+		return "K", 5, 7, "c1", nil
 	}
 
 	if strings.Contains(move, "x") {
@@ -1173,6 +1180,39 @@ func (b *Board) moveKing(position string, castle bool) error {
 			b.tiles[4][y] = nil
 			b.tiles[5][y] = rook
 			b.tiles[7][y] = nil
+
+			return nil
+		}
+
+		if (b.turn == Light && position == "c1") || (b.turn == Dark && position == "c8") {
+			// queenside castle
+
+			king := b.getPiece(4, y)
+			if king == nil || king.Color != b.turn || king.Name != King {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			if b.getPiece(3, y) != nil {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			if b.getPiece(2, y) != nil {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			if b.getPiece(1, y) != nil {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			rook := b.getPiece(0, y)
+			if rook == nil || rook.Color != b.turn || rook.Name != Rook {
+				return fmt.Errorf("invalid castle move")
+			}
+
+			b.tiles[2][y] = king
+			b.tiles[4][y] = nil
+			b.tiles[3][y] = rook
+			b.tiles[0][y] = nil
 
 			return nil
 		}

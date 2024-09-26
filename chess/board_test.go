@@ -500,6 +500,15 @@ func TestBoardCastle(t *testing.T) {
 	assertPiece(t, b, "g8", chess.King, chess.Dark)
 	assertNoPiece(t, b, "h8")
 	assertNoPiece(t, b, "e8")
+
+	b = chess.NewBoard()
+
+	assertParse(t, b, "e4 e5 Qg4 d6 d3 d5 Be3 d4 Nc3 dxe3 O-O-O")
+
+	assertPiece(t, b, "d1", chess.Rook, chess.Light)
+	assertPiece(t, b, "c1", chess.King, chess.Light)
+	assertNoPiece(t, b, "a1")
+	assertNoPiece(t, b, "e1")
 }
 
 func assertParse(t *testing.T, b *chess.Board, moves string) {
