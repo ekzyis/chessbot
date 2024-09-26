@@ -1001,8 +1001,6 @@ func (b *Board) getCollision(position string) (*Piece, error) {
 		return p, nil
 	}
 
-	// TODO: check if path is blocked by some piece
-
 	return nil, nil
 }
 
