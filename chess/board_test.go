@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/ekzyis/chessbot/chess"
@@ -451,6 +452,24 @@ func TestBoardMoveKingInvalid(t *testing.T) {
 	assertMoveError(t, b, "Ke1", "e1 blocked by white king")
 	assertMoveError(t, b, "Ke2", "e2 blocked by white pawn")
 	assertMoveError(t, b, "Ke3", "no king found that can move to e3")
+}
+
+func TestBoardCheck(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assert.False(t, b.InCheck())
+
+	assertParse(t, b, "e4 e5 Qh5 Nc6 Qxf7")
+
+	assert.True(t, b.InCheck())
+	assert.True(t, strings.HasSuffix(b.Moves[len(b.Moves)-1], "+"), "check move should end with +")
+
+	assertMoveError(t, b, "Nf6", "invalid move Nf6: king is in check")
+	assertMoveError(t, b, "Ke7", "invalid move Ke7: king is in check")
+
+	assertParse(t, b, "Kxf7")
 }
 
 func assertParse(t *testing.T, b *chess.Board, moves string) {

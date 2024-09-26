@@ -17,7 +17,7 @@ import (
 type Board struct {
 	tiles [8][8]*Piece
 	turn  Color
-	moves []string
+	Moves []string
 }
 
 func NewBoard() *Board {
@@ -240,7 +240,7 @@ func (b *Board) SetPiece(name PieceName, color Color, position string) error {
 
 func (b *Board) AlgebraicNotation() string {
 	var text string
-	for i, m := range b.moves {
+	for i, m := range b.Moves {
 		if i%2 == 0 {
 			text += fmt.Sprintf("%d. %s", i/2+1, m)
 		} else {
@@ -292,12 +292,9 @@ func (b *Board) Move(move string) error {
 	}
 
 	// TODO: parse ambiguous captures for all pieces
-	// TODO: parse checks e.g. e5+
 	// TODO: parse checkmates e.g. e5#
 	// TODO: parse O-O as kingside castle and O-O-O as queenside castle
 	// TODO: make sure pinned pieces cannot move
-	// TODO: make sure king is not in check after move
-	//   ( this avoids moving into check and moving a piece that exposes the king to check e.g. pinned pieces )
 
 	move_ := func() error {
 
@@ -330,13 +327,23 @@ func (b *Board) Move(move string) error {
 		return err
 	}
 
+	// is current player in check after move?
+	if b.InCheck() {
+		return fmt.Errorf("invalid move %s: king is in check", move)
+	}
+
 	if b.turn == Light {
 		b.turn = Dark
 	} else {
 		b.turn = Light
 	}
 
-	b.moves = append(b.moves, move)
+	// make sure the move is marked as a check if it was
+	if b.InCheck() && !strings.HasSuffix(move, "+") {
+		move += "+"
+	}
+
+	b.Moves = append(b.Moves, move)
 
 	return nil
 }
@@ -483,6 +490,248 @@ func (b *Board) validateMove(search PieceName, fromX int, fromY int) func(*Piece
 
 		return from && found
 	}
+}
+
+func (b *Board) InCheck() bool {
+	var (
+		kingX, kingY int
+		p            *Piece
+		x, y         int
+	)
+
+outerLoop:
+	// find king
+	for y = 0; y < 8; y++ {
+		for x = 0; x < 8; x++ {
+			p := b.getPiece(x, y)
+			if p != nil && p.Name == King && p.Color == b.turn {
+				kingX = x
+				kingY = y
+				break outerLoop
+			}
+		}
+	}
+
+	// check if any piece can attack king
+
+	// ^
+	x = kingX
+	y = kingY
+	for y = kingY - 1; y >= 0; y-- {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Rook || p.Name == Queen) {
+			return true
+		}
+
+		// some other piece is blocking the way
+		break
+	}
+
+	// ^>
+	x = kingX
+	y = kingY
+	for x, y = kingX+1, kingY-1; x < 8 && y >= 0; x, y = x+1, y-1 {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Bishop || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// >
+	x = kingX
+	y = kingY
+	for x = kingX + 1; x < 8; x++ {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Rook || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// v>
+	x = kingX
+	y = kingY
+	for x, y = kingX+1, kingY+1; x < 8 && y < 8; x, y = x+1, y+1 {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Bishop || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// v
+	x = kingX
+	y = kingY
+	for y = kingY + 1; y < 8; y++ {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Rook || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// <v
+	x = kingX
+	y = kingY
+	for x, y = kingX-1, kingY+1; x >= 0 && y < 8; x, y = x-1, y+1 {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Bishop || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// <
+	x = kingX
+	y = kingY
+	for x = kingX - 1; x >= 0; x-- {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Rook || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// <^
+	x = kingX
+	y = kingY
+	for x, y = kingX-1, kingY-1; x >= 0 && y >= 0; x, y = x-1, y-1 {
+		p = b.getPiece(x, y)
+
+		if p == nil {
+			continue
+		}
+
+		if p.Color != b.turn && (p.Name == Bishop || p.Name == Queen) {
+			return true
+		}
+
+		break
+	}
+
+	// check for knights
+	x = kingX + 1
+	y = kingY - 2
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX + 2
+	y = kingY - 1
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX + 2
+	y = kingY + 1
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX + 1
+	y = kingY + 2
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX - 1
+	y = kingY + 2
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX - 2
+	y = kingY + 1
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX - 2
+	y = kingY - 1
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	x = kingX - 1
+	y = kingY - 2
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Knight {
+		return true
+	}
+
+	// check for pawns
+	x = kingX - 1
+	if b.turn == Light {
+		y = kingY - 1
+	} else {
+		y = kingY + 1
+	}
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Pawn {
+		return true
+	}
+
+	x = kingX + 1
+	if b.turn == Light {
+		y = kingY - 1
+	} else {
+		y = kingY + 1
+	}
+	p = b.getPiece(x, y)
+	if p != nil && p.Color != b.turn && p.Name == Pawn {
+		return true
+	}
+
+	return false
 }
 
 func (b *Board) movePawn(position string, fromX int, fromY int, promotion string) error {
