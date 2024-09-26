@@ -326,7 +326,7 @@ func (b *Board) Move(move string) error {
 		case "n":
 			return b.moveKnight(to, fromX, fromY)
 		case "q":
-			return b.moveQueen(to)
+			return b.moveQueen(to, fromX, fromY)
 		case "k":
 			return b.moveKing(to, castle)
 		default:
@@ -1117,16 +1117,17 @@ func (b *Board) moveKnight(position string, fromX int, fromY int) error {
 	return fmt.Errorf("no knight found that can move to %s", position)
 }
 
-func (b *Board) moveQueen(position string) error {
+func (b *Board) moveQueen(position string, fromX int, fromY int) error {
 	var (
 		err error
 	)
 
+	// TODO: queen bishop moves might be ambiguous if there are multiple queens
 	if err = b.moveBishop(position, true); err == nil {
 		return nil
 	}
 
-	if err = b.moveRook(position, true, -1, -1); err == nil {
+	if err = b.moveRook(position, true, fromX, fromY); err == nil {
 		return nil
 	}
 
