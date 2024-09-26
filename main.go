@@ -171,7 +171,7 @@ func handleGameProgress(req *sn.Item) error {
 
 		// parse and execute existing moves
 		if err = b.Parse(moves); err != nil {
-			return fmt.Errorf("failed to parse move %s: %v\n", moves, err)
+			return err
 		}
 	}
 
@@ -181,7 +181,7 @@ func handleGameProgress(req *sn.Item) error {
 			// easter egg error message
 			return errors.New("Nice try, fed.")
 		}
-		return fmt.Errorf("failed to parse move %s: %v\n", move, err)
+		return err
 	}
 
 	// upload image of updated board
