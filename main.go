@@ -102,12 +102,16 @@ func tickGameProgress(c *sn.Client) {
 
 func handleGameStart(req *sn.Item) error {
 	var (
-		move   = strings.Trim(strings.ReplaceAll(req.Text, "@chess", ""), " ")
+		move   string
 		b      *chess.Board
 		imgUrl string
 		res    string
 		err    error
 	)
+
+	if move, err = parseGameStart(req.Text); err != nil {
+		return err
+	}
 
 	// Immediately save game start request to db so we can store our reply to it in case of error.
 	// We set parentId to 0 such that parent_id will be NULL in the db and not hit foreign key constraints.
@@ -218,4 +222,16 @@ func createComment(parentId int, text string) (*sn.Item, error) {
 	}
 
 	return comment, nil
+}
+
+func parseGameStart(input string) (string, error) {
+	for _, line := range strings.Split(input, "\n") {
+		if !strings.Contains(line, "@chess") {
+			continue
+		}
+
+		return strings.Trim(strings.ReplaceAll(line, "@chess", ""), " "), nil
+	}
+
+	return "", errors.New("failed to parse game start request")
 }
