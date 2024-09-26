@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"golang.org/x/image/font"
@@ -253,6 +254,7 @@ func (b *Board) AlgebraicNotation() string {
 func (b *Board) Parse(pgn string) error {
 	var (
 		moves = strings.Split(strings.Trim(pgn, " "), " ")
+		re    = regexp.MustCompile(`[0-9]+\.`)
 		err   error
 	)
 
@@ -261,6 +263,10 @@ func (b *Board) Parse(pgn string) error {
 		if move == "" {
 			continue
 		}
+
+		// parse algebraic notation with numbers
+		move = re.ReplaceAllString(move, "")
+
 		if err = b.Move(move); err != nil {
 			return err
 		}

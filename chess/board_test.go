@@ -511,6 +511,24 @@ func TestBoardCastle(t *testing.T) {
 	assertNoPiece(t, b, "e1")
 }
 
+func TestBoardParseAlgebraicNotation(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assertParse(t, b, "1.d4 d5 2.c4 e6")
+
+	assertPiece(t, b, "d4", chess.Pawn, chess.Light)
+	assertPiece(t, b, "d5", chess.Pawn, chess.Dark)
+	assertPiece(t, b, "c4", chess.Pawn, chess.Light)
+	assertPiece(t, b, "e6", chess.Pawn, chess.Dark)
+
+	assertNoPiece(t, b, "d2")
+	assertNoPiece(t, b, "d7")
+	assertNoPiece(t, b, "c2")
+	assertNoPiece(t, b, "e7")
+}
+
 func assertParse(t *testing.T, b *chess.Board, moves string) {
 	assert.NoError(t, b.Parse(moves))
 }
