@@ -301,6 +301,7 @@ func (b *Board) Move(move string) error {
 		move = strings.Replace(move, "x", "", 1)
 	}
 
+	// TODO: parse ambiguous captures for all pieces
 	// TODO: parse promotions
 	// TODO: parse checks e.g. e5+
 	// TODO: parse checkmates e.g. e5#

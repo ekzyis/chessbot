@@ -98,12 +98,28 @@ func TestBoardMovePawnInvalid(t *testing.T) {
 func TestBoardMovePawnCapture(t *testing.T) {
 	b := chess.NewBoard()
 
-	b.Move("e4")
-	b.Move("d5")
-	b.Move("exd5")
+	assert.NoError(t, b.Parse("e4 d5 exd5"))
 
 	assertNoPiece(t, b, "e4")
 	assertPiece(t, b, "d5", chess.Pawn, chess.Light)
+
+	// test ambiguous capture
+
+	b = chess.NewBoard()
+
+	assert.NoError(t, b.Parse("c4 d5 e4 e5 exd5"))
+
+	assertNoPiece(t, b, "e4")
+	assertPiece(t, b, "d5", chess.Pawn, chess.Light)
+	assertPiece(t, b, "c4", chess.Pawn, chess.Light)
+
+	b = chess.NewBoard()
+
+	assert.NoError(t, b.Parse("c4 d5 e4 e5 cxd5"))
+
+	assertNoPiece(t, b, "c4")
+	assertPiece(t, b, "d5", chess.Pawn, chess.Light)
+	assertPiece(t, b, "e4", chess.Pawn, chess.Light)
 }
 
 func TestBoardMoveKnight(t *testing.T) {
