@@ -271,6 +271,24 @@ func TestBoardMoveBishopInvalid(t *testing.T) {
 	assertMoveError(t, b, "Bd3", "no bishop found that can move to d3")
 }
 
+func TestBoardMoveBishopCapture(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assertParse(t, b, "e4 e5 Bc4 d5 Bxd5")
+
+	assertPiece(t, b, "e4", chess.Pawn, chess.Light)
+	assertPiece(t, b, "e5", chess.Pawn, chess.Dark)
+	assertPiece(t, b, "d5", chess.Bishop, chess.Light)
+	assertNoPiece(t, b, "f1")
+	assertNoPiece(t, b, "e2")
+	assertNoPiece(t, b, "e7")
+	assertNoPiece(t, b, "d7")
+
+	// bishop captures are never ambiguous because they can only move on same color
+}
+
 func TestBoardMoveRook(t *testing.T) {
 	t.Parallel()
 
