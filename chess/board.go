@@ -731,12 +731,13 @@ func (b *Board) moveBishop(position string, queen bool) error {
 
 func (b *Board) moveKnight(position string, fromX int, fromY int) error {
 	var (
-		x     int
-		y     int
-		xPrev int
-		yPrev int
-		piece *Piece
-		err   error
+		x         int
+		y         int
+		xPrev     int
+		yPrev     int
+		p         *Piece
+		validPrev []*Square
+		err       error
 	)
 
 	if x, y, err = getXY(position); err != nil {
@@ -747,73 +748,70 @@ func (b *Board) moveKnight(position string, fromX int, fromY int) error {
 
 	xPrev = x + 1
 	yPrev = y - 2
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x + 2
 	yPrev = y - 1
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x + 2
 	yPrev = y + 1
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x + 1
 	yPrev = y + 2
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x - 1
 	yPrev = y + 2
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x - 2
 	yPrev = y + 1
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x - 2
 	yPrev = y - 1
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
-		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
-		return nil
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
 	}
 
 	xPrev = x - 1
 	yPrev = y - 2
-	piece = b.getPiece(xPrev, yPrev)
-	if checkMove(piece, xPrev, yPrev) {
+	p = b.getPiece(xPrev, yPrev)
+	if checkMove(p, xPrev, yPrev) {
+		validPrev = append(validPrev, &Square{X: xPrev, Y: yPrev})
+	}
+
+	if len(validPrev) > 1 {
+		return fmt.Errorf("move ambiguous: %d knights can move to %s", len(validPrev), position)
+	}
+
+	if len(validPrev) == 1 {
+		xPrev = validPrev[0].X
+		yPrev = validPrev[0].Y
+		p = b.getPiece(xPrev, yPrev)
+		b.tiles[x][y] = p
 		b.tiles[xPrev][yPrev] = nil
-		b.tiles[x][y] = piece
 		return nil
 	}
 

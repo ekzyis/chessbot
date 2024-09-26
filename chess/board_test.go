@@ -189,6 +189,20 @@ func TestBoardMoveKnightInvalid(t *testing.T) {
 
 	assertMoveError(t, b, "Ne7", "e7 blocked by black pawn")
 	assertMoveError(t, b, "Nd7", "d7 blocked by black pawn")
+
+	// ambiguous moves
+
+	b = chess.NewBoard()
+	assertParse(t, b, "e4 e5 Nf3 d6 Nc3 d5 Nb5 d4")
+	assertMoveError(t, b, "Nxd4", "move ambiguous: 2 knights can move to d4")
+	assertMoveError(t, b, "N4xd4", "no knight found that can move to d4")
+	// disambiguate via file
+	assertParse(t, b, "Nfxd4")
+
+	b = chess.NewBoard()
+	assertParse(t, b, "e4 e5 Nf3 d6 Nc3 d5 Nb5 d4")
+	// disambiguate via rank
+	assertParse(t, b, "N3xd4")
 }
 
 func TestBoardMoveKnightCapture(t *testing.T) {
