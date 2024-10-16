@@ -263,11 +263,12 @@ func parseGameStart(input string) (string, error) {
 	for _, line := range strings.Split(input, "\n") {
 		line = strings.Trim(line, " ")
 
-		if !strings.HasPrefix(line, "@chess") {
+		var found bool
+		if line, found = strings.CutPrefix(line, "@chess"); !found {
 			continue
 		}
 
-		return strings.Trim(strings.ReplaceAll(line, "@chess", ""), " "), nil
+		return strings.Trim(line, " "), nil
 	}
 
 	return "", errors.New("failed to parse game start")
@@ -278,15 +279,18 @@ func parseGameProgress(input string) (string, error) {
 	words := strings.Split(input, " ")
 
 	if len(lines) == 1 && len(words) == 1 {
-		return strings.Trim(input, " "), nil
+		return strings.Trim(strings.ReplaceAll(input, "@chess", ""), " "), nil
 	}
 
 	for _, line := range strings.Split(input, "\n") {
-		if !strings.Contains(line, "@chess") {
+		line = strings.Trim(line, " ")
+
+		var found bool
+		if line, found = strings.CutPrefix(line, "@chess"); !found {
 			continue
 		}
 
-		return strings.Trim(strings.ReplaceAll(line, "@chess", ""), " "), nil
+		return strings.Trim(line, " "), nil
 	}
 
 	return "", errors.New("failed to parse game update")
