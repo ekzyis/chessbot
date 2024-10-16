@@ -44,9 +44,7 @@ func tickGameStart(c *sn.Client) {
 
 	for _, n := range mentions {
 
-		// we only care about current notifications
-		x := time.Now().Add(-30 * time.Second)
-		if n.Item.CreatedAt.Before(x) {
+		if !isRecent(n.Item.CreatedAt) {
 			log.Printf("ignoring old mention %d\n", n.Item.Id)
 			continue
 		}
@@ -95,9 +93,7 @@ func tickGameProgress(c *sn.Client) {
 
 	for _, n := range replies {
 
-		// we only care about current notifications
-		x := time.Now().Add(-30 * time.Second)
-		if n.Item.CreatedAt.Before(x) {
+		if !isRecent(n.Item.CreatedAt) {
 			log.Printf("ignoring old reply %d\n", n.Item.Id)
 			continue
 		}
@@ -294,4 +290,9 @@ func parseGameProgress(input string) (string, error) {
 	}
 
 	return "", errors.New("failed to parse game update")
+}
+
+func isRecent(t time.Time) bool {
+	x := time.Now().Add(-30 * time.Second)
+	return t.After(x)
 }
