@@ -62,10 +62,6 @@ func ItemHasReply(parentId int, userId int) (bool, error) {
 		return true, err
 	}
 
-	if count > 0 {
-		log.Printf("ignoring known item %d", parentId)
-	}
-
 	return count > 0, nil
 }
 
