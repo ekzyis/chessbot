@@ -40,7 +40,7 @@ func tickGameStart(c *sn.Client) {
 		return
 	}
 
-	log.Printf("fetched %d mention(s)\n", len(mentions))
+	log.Printf("fetched %d mentions\n", len(mentions))
 
 	for _, n := range mentions {
 
