@@ -3,7 +3,7 @@ module github.com/ekzyis/chessbot
 go 1.23.0
 
 require (
-	github.com/ekzyis/snappy v0.6.1
+	github.com/ekzyis/snappy v0.6.2
 	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/image v0.20.0
