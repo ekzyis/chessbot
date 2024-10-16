@@ -44,6 +44,13 @@ func tickGameStart(c *sn.Client) {
 
 	for _, n := range mentions {
 
+		// we only care about current notifications
+		x := time.Now().Add(-30 * time.Second)
+		if n.Item.CreatedAt.Before(x) {
+			log.Printf("ignoring old mention %d\n", n.Item.Id)
+			continue
+		}
+
 		if exists, err := db.ItemHasReply(n.Item.Id, meId); err != nil {
 			log.Printf("failed to check for existing reply to game start in item %d: %v\n", n.Item.Id, err)
 			continue
@@ -87,6 +94,13 @@ func tickGameProgress(c *sn.Client) {
 	log.Printf("fetched %d replies\n", len(replies))
 
 	for _, n := range replies {
+
+		// we only care about current notifications
+		x := time.Now().Add(-30 * time.Second)
+		if n.Item.CreatedAt.Before(x) {
+			log.Printf("ignoring old reply %d\n", n.Item.Id)
+			continue
+		}
 
 		if exists, err := db.ItemHasReply(n.Item.Id, meId); err != nil {
 			log.Printf("failed to check for existing reply to game update in item %d: %v\n", n.Item.Id, err)
