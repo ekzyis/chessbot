@@ -49,10 +49,10 @@ func tickGameStart(c *sn.Client) {
 			continue
 		}
 
-		if exists, err := db.ItemHasReply(n.Item.Id, meId); err != nil {
+		if handled, err := alreadyHandled(n.Item.Id); err != nil {
 			log.Printf("failed to check for existing reply to game start in item %d: %v\n", n.Item.Id, err)
 			continue
-		} else if exists {
+		} else if handled {
 			// TODO: check if move changed
 			log.Printf("reply to game start in item %d already exists\n", n.Item.Id)
 			continue
@@ -98,10 +98,10 @@ func tickGameProgress(c *sn.Client) {
 			continue
 		}
 
-		if exists, err := db.ItemHasReply(n.Item.Id, meId); err != nil {
+		if handled, err := alreadyHandled(n.Item.Id); err != nil {
 			log.Printf("failed to check for existing reply to game update in item %d: %v\n", n.Item.Id, err)
 			continue
-		} else if exists {
+		} else if handled {
 			// TODO: check if move changed
 			log.Printf("reply to game update in item %d already exists\n", n.Item.Id)
 			continue
@@ -295,4 +295,8 @@ func parseGameProgress(input string) (string, error) {
 func isRecent(t time.Time) bool {
 	x := time.Now().Add(-30 * time.Second)
 	return t.After(x)
+}
+
+func alreadyHandled(id int) (bool, error) {
+	return db.ItemHasReply(id, meId)
 }
