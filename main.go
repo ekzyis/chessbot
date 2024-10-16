@@ -107,6 +107,14 @@ func tickGameProgress(c *sn.Client) {
 			continue
 		}
 
+		if parent, err := c.Item(n.Item.ParentId); err != nil {
+			log.Printf("failed to fetch parent %d of %d\n", n.Item.ParentId, n.Item.Id)
+			continue
+		} else if parent.User.Id != meId {
+			log.Printf("ignoring nested reply %d\n", n.Item.Id)
+			continue
+		}
+
 		if err = handleGameProgress(&n.Item); err != nil {
 
 			if err.Error() == "failed to parse game update" {
