@@ -240,6 +240,10 @@ func (b *Board) SetPiece(name PieceName, color Color, position string) error {
 }
 
 func (b *Board) AlgebraicNotation() string {
+	if len(b.Moves) == 0 {
+		return ""
+	}
+
 	var text string
 	for i, m := range b.Moves {
 		if i%2 == 0 {
