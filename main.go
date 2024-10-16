@@ -59,19 +59,7 @@ func tickGameStart(c *sn.Client) {
 		}
 
 		if err = handleGameStart(&n.Item); err != nil {
-
-			// don't reply to mentions that we failed to parse as a game start
-			// to support unrelated mentions
-			if err.Error() == "failed to parse game start" {
-				log.Printf("ignoring error for item %d: %v\n", n.Item.Id, err)
-				return
-			}
-
-			if _, err2 := createComment(n.Item.Id, fmt.Sprintf("`%v`", err)); err2 != nil {
-				log.Printf("failed to reply with error to item %d: %v\n", n.Item.Id, err2)
-			} else {
-				log.Printf("replied to game start in item %d with error: %v\n", n.Item.Id, err)
-			}
+			handleError(&n.Item, err)
 		} else {
 			log.Printf("started new game via item %d\n", n.Item.Id)
 		}
@@ -116,17 +104,7 @@ func tickGameProgress(c *sn.Client) {
 		}
 
 		if err = handleGameProgress(&n.Item); err != nil {
-
-			if err.Error() == "failed to parse game update" {
-				log.Printf("ignoring error for item %d: %v\n", n.Item.Id, err)
-				return
-			}
-
-			if _, err2 := createComment(n.Item.Id, fmt.Sprintf("`%v`", err)); err2 != nil {
-				log.Printf("failed to reply with error to item %d: %v\n", n.Item.Id, err2)
-			} else {
-				log.Printf("replied to game start in item %d with error: %v\n", n.Item.Id, err)
-			}
+			handleError(&n.Item, err)
 		} else {
 			log.Printf("updated game via item %d\n", n.Item.Id)
 		}
@@ -239,6 +217,27 @@ func handleGameProgress(req *sn.Item) error {
 	}
 
 	return nil
+}
+
+func handleError(req *sn.Item, err error) {
+
+	// don't reply to mentions that we failed to parse as a game start
+	// to support unrelated mentions
+	if err.Error() == "failed to parse game start" {
+		log.Printf("ignoring error for item %d: %v\n", req.Id, err)
+		return
+	}
+
+	if err.Error() == "failed to parse game update" {
+		log.Printf("ignoring error for item %d: %v\n", req.Id, err)
+		return
+	}
+
+	if _, err2 := createComment(req.Id, fmt.Sprintf("`%v`", err)); err2 != nil {
+		log.Printf("failed to reply with error to item %d: %v\n", req.Id, err2)
+	} else {
+		log.Printf("replied to game start in item %d with error: %v\n", req.Id, err)
+	}
 }
 
 func createComment(parentId int, text string) (*sn.Item, error) {
