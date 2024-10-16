@@ -238,7 +238,7 @@ func createComment(parentId int, text string) (*sn.Item, error) {
 	}
 
 	if err = db.InsertItem(comment); err != nil {
-		return nil, fmt.Errorf("failed to insert item %d into db: %v\n", err, comment.Id)
+		return nil, fmt.Errorf("failed to insert item %d into db: %v\n", comment.Id, err)
 	}
 
 	return comment, nil
