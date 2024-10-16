@@ -16,7 +16,8 @@ import (
 var (
 	c = sn.GetClient()
 	// TODO: fetch our id from SN API
-	meId = 21858
+	// prod: 25176 | local: 21858
+	meId = 25176
 )
 
 func main() {
