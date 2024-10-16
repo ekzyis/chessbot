@@ -360,7 +360,7 @@ func (b *Board) Move(move string) error {
 	}
 
 	// make sure the move is marked as a check if it was
-	if b.InCheck() && !strings.HasSuffix(move, "+") {
+	if b.InCheck() && !strings.HasSuffix(move, "+") && !strings.HasSuffix(move, "#") {
 		move += "+"
 	}
 
@@ -379,6 +379,7 @@ func parseMove(move string) (string, int, int, string, error) {
 	)
 
 	move = strings.TrimSuffix(move, "+")
+	move = strings.TrimSuffix(move, "#")
 
 	if move == "O-O" {
 		return "K", 5, 7, "g1", nil

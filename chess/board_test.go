@@ -472,6 +472,22 @@ func TestBoardCheck(t *testing.T) {
 	assertParse(t, b, "Kxf7")
 }
 
+func TestBoardCheckmate(t *testing.T) {
+	t.Parallel()
+
+	b := chess.NewBoard()
+
+	assert.False(t, b.InCheck())
+
+	// fool's mate
+	assertParse(t, b, "f3 e6 g4 Qh4#")
+
+	assert.True(t, b.InCheck())
+	assert.True(t, strings.HasSuffix(b.Moves[len(b.Moves)-1], "#"), "checkmate move should end with #")
+
+	assertMoveError(t, b, "a3", "invalid move a3: king is in check")
+}
+
 func TestBoardPin(t *testing.T) {
 	t.Parallel()
 
