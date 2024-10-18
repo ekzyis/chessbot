@@ -147,9 +147,13 @@ func handleGameStart(req *sn.Item) error {
 	}
 
 	// reply with algebraic notation, image and info
-	info := "_A new chess game has been started!_\n\n" +
-		"_Reply with a move like `d5` to continue the game. " +
-		"See [here](https://stacker.news/chess#how-to-continue) for details._"
+	infoMove := "e4"
+	if len(b.Moves) > 0 {
+		infoMove = "e5"
+	}
+	info := fmt.Sprintf("_A new chess game has been started!_\n\n"+
+		"_Reply with a move like `%s` to continue the game. "+
+		"See [here](https://stacker.news/chess#how-to-continue) for details._", infoMove)
 	res = strings.Trim(fmt.Sprintf("%s\n\n%s\n\n%s", b.AlgebraicNotation(), imgUrl, info), " ")
 	if _, err = createComment(req.Id, res); err != nil {
 		return fmt.Errorf("failed to reply to item %d: %v\n", req.Id, err)
