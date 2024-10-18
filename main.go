@@ -146,8 +146,11 @@ func handleGameStart(req *sn.Item) error {
 		return fmt.Errorf("failed to upload image for item %d: %v\n", req.Id, err)
 	}
 
-	// reply with algebraic notation and image
-	res = strings.Trim(fmt.Sprintf("%s\n\n%s", b.AlgebraicNotation(), imgUrl), " ")
+	// reply with algebraic notation, image and info
+	info := "_A new chess game has been started!_\n\n" +
+		"_Reply with a move like `d5` to continue the game. " +
+		"See [here](https://stacker.news/chess#how-to-continue) for details._"
+	res = strings.Trim(fmt.Sprintf("%s\n\n%s\n\n%s", b.AlgebraicNotation(), imgUrl, info), " ")
 	if _, err = createComment(req.Id, res); err != nil {
 		return fmt.Errorf("failed to reply to item %d: %v\n", req.Id, err)
 	}
