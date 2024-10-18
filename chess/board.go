@@ -16,9 +16,14 @@ import (
 )
 
 type Board struct {
-	tiles [8][8]*Piece
-	turn  Color
-	Moves []string
+	tiles          [8][8]*Piece
+	turn           Color
+	Moves          []string
+	moveIndicators []Tile
+}
+
+type Tile struct {
+	X, Y int
 }
 
 func NewBoard() *Board {
@@ -101,7 +106,7 @@ func (b *Board) Image() *image.RGBA {
 			x := xi * 128
 			y := yi * 128
 			rect = image.Rect(x, y, x+128, y+128)
-			bg = image.NewUniform(getTileColor(xi, yi))
+			bg = image.NewUniform(getTileColor(b, xi, yi))
 			draw.Draw(img, rect, bg, p, draw.Src)
 
 			piece = b.tiles[xi][yi]
@@ -186,7 +191,7 @@ func drawCoordinate(img *image.RGBA, x, y int, flipped bool) {
 	}
 
 	drawString := func(s string, origin fixed.Point26_6) {
-		color := getTileColor(x, y)
+		color := getTileColor(nil, x, y)
 		if !flipped && color == Light {
 			color = Dark
 		} else if !flipped {
@@ -802,6 +807,7 @@ func (b *Board) movePawn(position string, fromX int, fromY int, promotion string
 		if promotion != "" {
 			return b.promotePawn(toX, toY, promotion)
 		}
+		b.moveIndicators = []Tile{{fromX, fromY}, {toX, toY}}
 		return nil
 	}
 
@@ -824,6 +830,7 @@ func (b *Board) movePawn(position string, fromX int, fromY int, promotion string
 		if promotion != "" {
 			return b.promotePawn(toX, toY, promotion)
 		}
+		b.moveIndicators = []Tile{{toX, yPrev}, {toX, toY}}
 		return nil
 	}
 
@@ -840,6 +847,7 @@ func (b *Board) movePawn(position string, fromX int, fromY int, promotion string
 		if promotion != "" {
 			return b.promotePawn(toX, toY, promotion)
 		}
+		b.moveIndicators = []Tile{{toX, yPrev}, {toX, toY}}
 		return nil
 	}
 
@@ -949,6 +957,7 @@ func (b *Board) moveRook(position string, queen bool, fromX int, fromY int) erro
 		p = b.getPiece(xPrev, yPrev)
 		b.tiles[x][y] = p
 		b.tiles[xPrev][yPrev] = nil
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -979,6 +988,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
+				b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 				return nil
 			} else {
 				// direction blocked by other piece
@@ -997,6 +1007,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
+				b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 				return nil
 			} else {
 				break
@@ -1014,6 +1025,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
+				b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 				return nil
 			} else {
 				break
@@ -1031,6 +1043,7 @@ func (b *Board) moveBishop(position string, queen bool) error {
 			if ((!queen && piece.Name == Bishop) || (queen && piece.Name == Queen)) && piece.Color == b.turn {
 				b.tiles[xPrev][yPrev] = nil
 				b.tiles[x][y] = piece
+				b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 				return nil
 			} else {
 				break
@@ -1124,6 +1137,7 @@ func (b *Board) moveKnight(position string, fromX int, fromY int) error {
 		p = b.getPiece(xPrev, yPrev)
 		b.tiles[x][y] = p
 		b.tiles[xPrev][yPrev] = nil
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1195,6 +1209,8 @@ func (b *Board) moveKing(position string, castle bool) error {
 			b.tiles[5][y] = rook
 			b.tiles[7][y] = nil
 
+			b.moveIndicators = []Tile{{4, y}, {x, y}, {5, y}, {7, y}}
+
 			return nil
 		}
 
@@ -1228,6 +1244,8 @@ func (b *Board) moveKing(position string, castle bool) error {
 			b.tiles[3][y] = rook
 			b.tiles[0][y] = nil
 
+			b.moveIndicators = []Tile{{2, y}, {4, y}, {3, y}, {0, y}}
+
 			return nil
 		}
 	}
@@ -1239,6 +1257,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1249,6 +1268,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1259,6 +1279,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1269,6 +1290,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1279,6 +1301,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1289,6 +1312,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1299,6 +1323,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1309,6 +1334,7 @@ func (b *Board) moveKing(position string, castle bool) error {
 	if piece != nil && piece.Name == King && piece.Color == b.turn {
 		b.tiles[xPrev][yPrev] = nil
 		b.tiles[x][y] = piece
+		b.moveIndicators = []Tile{{xPrev, yPrev}, {x, y}}
 		return nil
 	}
 
@@ -1393,8 +1419,25 @@ func (b *Board) getCollision(position string) (*Piece, error) {
 	return nil, nil
 }
 
-func getTileColor(x, y int) Color {
-	if x%2 == y%2 {
+func getTileColor(b *Board, x, y int) Color {
+
+	lightTile := x%2 == y%2
+
+	if b != nil {
+		// highlight move
+		// TODO: refactor using alpha channels
+		for _, t := range b.moveIndicators {
+			if t.X == x && t.Y == y {
+				if lightTile {
+					return LightGreen
+				} else {
+					return DarkGreen
+				}
+			}
+		}
+	}
+
+	if lightTile {
 		return Light
 	} else {
 		return Dark

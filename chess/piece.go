@@ -58,8 +58,10 @@ const (
 type Color color.Color
 
 var (
-	Light Color = color.RGBA{240, 217, 181, 255}
-	Dark  Color = color.RGBA{181, 136, 99, 255}
+	Light      Color = color.RGBA{240, 217, 181, 255}
+	Dark       Color = color.RGBA{181, 136, 99, 255}
+	LightGreen Color = color.RGBA{205, 210, 106, 255}
+	DarkGreen  Color = color.RGBA{170, 162, 58, 255}
 )
 
 func NewPiece(name PieceName, color Color) (*Piece, error) {
