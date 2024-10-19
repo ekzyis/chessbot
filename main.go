@@ -14,19 +14,52 @@ import (
 )
 
 var (
-	c = sn.GetClient()
-	// TODO: fetch our id from SN API
-	// prod: 25176 | local: 21858
-	meId = 25176
+	c  = sn.GetClient()
+	me *sn.User
 )
 
 func main() {
 
 	for {
+		updateMe()
 		tickGameStart(c)
 		tickGameProgress(c)
 		time.Sleep(15 * time.Second)
 	}
+}
+
+func updateMe() {
+	var (
+		oldMe         *sn.User
+		err           error
+		warnThreshold = 100
+	)
+
+	maybeWarn := func() {
+		if me.Privates.Sats < warnThreshold {
+			log.Printf("~~~ warning: low balance ~~~\n")
+		}
+	}
+
+	if me == nil {
+		// make sure first update is successful
+		if me, err = c.Me(); err != nil {
+			log.Fatalf("failed to fetch me: %v\n", err)
+		}
+		log.Printf("fetched me: id=%d name=%s balance=%d\n", me.Id, me.Name, me.Privates.Sats)
+		maybeWarn()
+		return
+	}
+
+	oldMe = me
+	if me, err = c.Me(); err != nil {
+		log.Printf("failed to update me: %v\n", err)
+		me = oldMe
+	} else {
+		log.Printf("updated me. balance: %d\n", me.Privates.Sats)
+	}
+
+	maybeWarn()
 }
 
 func tickGameStart(c *sn.Client) {
@@ -98,7 +131,7 @@ func tickGameProgress(c *sn.Client) {
 		if parent, err := c.Item(n.Item.ParentId); err != nil {
 			log.Printf("failed to fetch parent %d of %d\n", n.Item.ParentId, n.Item.Id)
 			continue
-		} else if parent.User.Id != meId {
+		} else if parent.User.Id != me.Id {
 			log.Printf("ignoring nested reply %d\n", n.Item.Id)
 			continue
 		}
@@ -183,7 +216,7 @@ func handleGameProgress(req *sn.Item) error {
 	}
 
 	for _, item := range thread {
-		if item.User.Id == meId {
+		if item.User.Id == me.Id {
 			continue
 		}
 
@@ -312,5 +345,5 @@ func isRecent(t time.Time) bool {
 }
 
 func alreadyHandled(id int) (bool, error) {
-	return db.ItemHasReply(id, meId)
+	return db.ItemHasReply(id, me.Id)
 }

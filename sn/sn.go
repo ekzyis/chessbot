@@ -13,6 +13,7 @@ import (
 type Client = snappy.Client
 type Notification = snappy.Notification
 type Item = snappy.Item
+type User = snappy.User
 
 var (
 	c *Client
