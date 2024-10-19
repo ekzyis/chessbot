@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -197,11 +198,17 @@ func drawCoordinate(img *image.RGBA, x, y int, flipped bool) {
 		} else if !flipped {
 			color = Light
 		}
-		// TODO: use SN font and make it bold
+
+		face, err := loadFontFace("lightningvolt.ttf")
+		if err != nil {
+			log.Printf("error loading font: %v\n", err)
+			face = basicfont.Face7x13
+		}
+
 		d := &font.Drawer{
 			Dst:  img,
 			Src:  image.NewUniform(color),
-			Face: basicfont.Face7x13,
+			Face: face,
 			Dot:  origin,
 		}
 		d.DrawString(s)
@@ -214,9 +221,34 @@ func drawCoordinate(img *image.RGBA, x, y int, flipped bool) {
 	}
 
 	if row != "" {
-		origin = fixed.P((x+1)*128-12, y*128+15)
+		origin = fixed.P((x+1)*128-20, y*128+23)
 		drawString(row, origin)
 	}
+}
+
+func loadFontFace(path string) (font.Face, error) {
+	fontBytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	ttfFont, err := opentype.Parse(fontBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	faceOptions := &opentype.FaceOptions{
+		Size:    32,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	}
+
+	fontFace, err := opentype.NewFace(ttfFont, faceOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return fontFace, nil
 }
 
 func (b *Board) SetPiece(name PieceName, color Color, position string) error {
