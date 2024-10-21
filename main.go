@@ -318,6 +318,8 @@ func parseGameStart(input string) (string, error) {
 }
 
 func parseGameProgress(input string) (string, error) {
+	input = strings.Trim(input, " ")
+
 	lines := strings.Split(input, "\n")
 	words := strings.Split(input, " ")
 
