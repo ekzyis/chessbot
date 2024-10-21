@@ -2,3 +2,4 @@
 !assets/*.png
 .env
 *.sqlite3
+chessbot
