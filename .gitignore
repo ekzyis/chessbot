@@ -3,3 +3,6 @@
 .env
 *.sqlite3
 chessbot
+
+# nix build
+result
