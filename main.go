@@ -286,6 +286,15 @@ func createComment(parentId int, text string) (*sn.Item, error) {
 		err       error
 	)
 
+	// TODO: use territory comment fee
+	feeEstimate := 1
+	newBalance := max(0, me.Privates.Sats-feeEstimate)
+	text += fmt.Sprintf("\n\n<sub>bot balance: %d sats", newBalance)
+	if newBalance <= 100 {
+		text += "· zap the bot to keep playing"
+	}
+	text += "</sub>"
+
 	if commentId, err = c.CreateComment(parentId, text); err != nil {
 		return nil, fmt.Errorf("failed to reply to item %d: %v\n", parentId, err)
 	}
