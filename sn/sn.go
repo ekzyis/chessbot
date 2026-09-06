@@ -25,7 +25,7 @@ func GetClient() *Client {
 	if c == nil {
 		c = snappy.NewClient(
 			snappy.WithBaseUrl(os.Getenv("SN_BASE_URL")),
-			snappy.WithApiKey(os.Getenv("SN_API_KEY")),
+			snappy.WithNsec(os.Getenv("SN_NSEC")),
 			snappy.WithMediaUrl(os.Getenv("SN_MEDIA_URL")),
 		)
 	}
