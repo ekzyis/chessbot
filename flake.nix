@@ -12,7 +12,7 @@
         name = "chessbot";
         src = ./.;
 
-        vendorHash = "sha256-uCLFMduXpY79ANi3ss2e6RjE4vZ5WpjXAIzHniteWcw=";
+        vendorHash = "sha256-YKpkx0+FaFo8vZPNUbxZSl0YrKjZJftjHknLbr9qV5A=";
 
         buildInputs = [ pkgs.sqlite ];
 
